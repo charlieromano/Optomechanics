@@ -25,3 +25,23 @@ In the next picture there are a list of measurements which are parametrized with
 
 
 
+### Threaded retaining ring
+
+Based on:
+
+ "Fundamental of Optomechanics", D. Vukobratovich, P. Yoder, CRC Press.
+
+Freecad wiki, Thread for screw tutorial, Method 4. Sweeping a vertical profile, https://wiki.freecadweb.org/Thread_for_Screw_Tutorial
+
+
+
+
+
+![](Pics/threaded_retaining_ring.png)
+
+### Dome mounting
+
+Based on "Fundamental of Optomechanics", D. Vukobratovich, P. Yoder, CRC Press.
+
+![](Pics/dome_mounting.png)
+
