@@ -29,15 +29,22 @@ In the next picture there are a list of measurements which are parametrized with
 
 Based on:
 
- "Fundamental of Optomechanics", D. Vukobratovich, P. Yoder, CRC Press.
-
-Freecad wiki, Thread for screw tutorial, Method 4. Sweeping a vertical profile, https://wiki.freecadweb.org/Thread_for_Screw_Tutorial
+-  "Fundamental of Optomechanics", D. Vukobratovich, P. Yoder, CRC Press.
+- Freecad wiki, Thread for screw tutorial, Method 4. Sweeping a vertical profile, https://wiki.freecadweb.org/Thread_for_Screw_Tutorial
 
 
 
 
 
 ![](Pics/threaded_retaining_ring.png)
+
+![](Pics/400px-ISO_and_UTS_Thread_Dimensions.svg.png)
+
+
+
+![](Pics/combined_3d.png)
+
+
 
 ### Dome mounting
 
