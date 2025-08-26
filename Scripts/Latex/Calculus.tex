@@ -1,0 +1,83 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[top=1.25in, bottom=1.25in, left=1in, right=1in]{geometry}
+\usepackage[colorinlistoftodos]{todonotes}
+
+\begin{document}
+\begin{center}
+\large{Equations and calculus.}\\
+\small{Eng. Carlos Romano}\\
+\end{center}
+\section{Laser Beam Propagation}
+\begin{equation*}
+C = B\cdot \textrm{log}_2\left(1+\frac{S}{N}\right) \\
+\end{equation*}
+\begin{equation}
+\Lambda_0 = 2\\
+\end{equation}
+\begin{align*}
+\lambda &= 1.55 \ \mu\textrm{m}\\
+W_0 &= 0.03 \ \textrm{m} \\
+F_0 &= 500 \ \textrm{m}\\
+L &= 500 \ \textrm{km}
+\end{align*}
+\begin{align*}
+\Theta_0 &= 1-\frac{L}{F_0} = 1 - \frac{500 \ \textrm{km}}{500\ \textrm{m} }= -999
+\\
+\\
+\Lambda_0 &= \frac{2L}{kW_0^2}  = \frac{2\cdot 500\ \textrm{km}}{\frac{2\pi}{1.55\mu\textrm{m}}\cdot (0.03\ \textrm{m})^2} = 274.1
+\\
+\\
+W &= W_0\sqrt{\Theta_0^2+\Lambda_0^2} = 0.03\cdot\sqrt{999^2+274.1^2} = 31.08 \ \textrm{m}
+\\
+\\
+I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} = I_0\cdot\frac{0.03^2}{31.08^2} = I_0\cdot 0.931\ \frac{m\textrm{W}}{\textrm{m}^2}
+\\
+\\
+P_{R_x} &= P_{T_x}\cdot \left(1-e^\frac{-2r^2}{W^2}\right) = 10\ \textrm{W}\cdot \left(1-e^\frac{2\cdot0.5^2}{31.08^2}\right) = 5.17\ m\textrm{W}
+\end{align*}
+
+\section{Signal to Noise Ratio}
+
+\begin{align*}
+i_S &= \frac{\eta e P_s}{h\nu} = \frac{0.85\cdot e \cdot 10 \textrm{ mW}}{h\cdot 193.4 \textrm{ THz}} = 0.01063\\
+\\
+\\
+\left\langle i_N^2 \right\rangle &= 2eBi_S = 2\cdot e \cdot 100\cdot 10^{9}\cdot 0.01063 = 3.406\cdot 10^{-10}
+\\
+\\
+\end{align*}
+
+\begin{align*}
+\textrm{SNR}_0 &= \frac{i_s}{\sigma_N} = \sqrt{\frac{\eta P_S}{2h\nu B}} \ \ \rightarrow \ \ 10\cdot \log(\textrm{SNR}_0) = 74.9 \textrm{ dB}
+\\
+\\
+\left\langle\textrm{SNR}\right\rangle &= \frac{\textrm{SNR}_0}{\sqrt{\left(\frac{P_{S0}}{\left\langle P_S\right\rangle}\right)+\sigma_I^2(D_G)\textrm{SNR}_0^2}}
+\\
+\\
+\left\langle\textrm{SNR}\right\rangle &\cong \frac{1}{\sigma_1(D_G)}, \ \ \ \textrm{SNR}_0 \rightarrow \infty
+\\
+\\
+Pr_{\textrm{fade}} &= 1 -\frac{1}{2}\int_0^\infty (u)\textrm{erfc}\left(\frac{\textrm{TNR}-\left\langle \textrm{SNR}\right\rangle u}{\sqrt{2}}\right)du
+\\
+\\
+Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(u)\textrm{erfc}\left(\frac{\left\langle \textrm{SNR}\right\rangle u}{2\sqrt{2}}\right)du
+\end{align*}
+
+\section{Gimbal angular speed}
+
+\begin{align*}
+\tan \theta_z = \frac{v\cdot t}{L}\ \ \  \Rightarrow \ \ \  \theta_z &= \arctan \left(\frac{v\cdot t}{L} \right)\\
+\\
+\omega_z &= \frac{\partial \theta_z}{\partial t} \ = \frac{v\cdot L}{(v\cdot t)^2 + L^2} \\
+\\
+\omega_z(x) &= \frac{v\cdot L}{x^2 + L} , \ \ \ v\cdot t  = x \\
+\\
+\omega_z(\theta_z) &= \frac{v}{L}\cos^2\theta_z\\
+\end{align*}
+
+\end{document}
