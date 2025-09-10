@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  26 AUG 2025 12:25
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  8 SEP 2025 19:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -543,7 +543,8 @@ dftex.def
 File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count304
 \l__pdf_internal_box=\box64
-) (C:\Users\cromano\Documents\Scripts\Latex\build\Calculus.aux)
+)
+(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Calculus.aux)
 \openout1 = `Calculus.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
@@ -623,7 +624,7 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 [1
 
 {C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-(C:\Users\cromano\Documents\Scripts\Latex\build\Calculus.aux)
+(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Calculus.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
@@ -631,7 +632,7 @@ L3 programming layer <2024-01-04>
  ) 
 Here is how much of TeX's memory you used:
  14718 strings out of 474486
- 300989 string characters out of 5742811
+ 301115 string characters out of 5742811
  1943542 words of memory out of 5000000
  36758 multiletter control sequences out of 15000+600000
  559725 words of font info for 42 fonts, out of 8000000 for 9000
@@ -652,8 +653,8 @@ c/amsfonts/cm/cmr9.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/ty
 pe1/public/amsfonts/cm/cmsy10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/cromano/AppData/Local/Pro
 grams/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
-Output written on C:\Users\cromano\Documents\Scripts\Latex\build\Calculus.pdf (
-2 pages, 156456 bytes).
+Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
+Calculus.pdf (2 pages, 158935 bytes).
 PDF statistics:
  77 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
