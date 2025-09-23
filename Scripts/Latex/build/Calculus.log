@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  8 SEP 2025 19:24
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  23 SEP 2025 18:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -624,7 +624,7 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 [1
 
 {C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Calculus.aux)
+[3] (C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Calculus.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
@@ -633,11 +633,11 @@ L3 programming layer <2024-01-04>
 Here is how much of TeX's memory you used:
  14718 strings out of 474486
  301115 string characters out of 5742811
- 1943542 words of memory out of 5000000
+ 1944542 words of memory out of 5000000
  36758 multiletter control sequences out of 15000+600000
  559725 words of font info for 42 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,14n,101p,420b,176s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,14n,101p,420b,179s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
 m/cmbx12.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public
 /amsfonts/cm/cmex10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/t
@@ -654,9 +654,9 @@ pe1/public/amsfonts/cm/cmsy10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/cromano/AppData/Local/Pro
 grams/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-Calculus.pdf (2 pages, 158935 bytes).
+Calculus.pdf (3 pages, 166942 bytes).
 PDF statistics:
- 77 PDF objects out of 1000 (max. 8388607)
+ 80 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
