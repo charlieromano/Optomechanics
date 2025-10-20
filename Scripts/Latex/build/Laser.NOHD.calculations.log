@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  14 OCT 2025 11:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  20 OCT 2025 17:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./FSOC.DataRate.tex
-(FSOC.DataRate.tex
+**./Laser.NOHD.calculations.tex
+(Laser.NOHD.calculations.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
 (C:\Users\cromano\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
@@ -544,9 +544,9 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count304
 \l__pdf_internal_box=\box64
 )
-(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
-)
-\openout1 = `FSOC.DataRate.aux'.
+(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Laser.NOHD.calcul
+ations.aux)
+\openout1 = `Laser.NOHD.calculations.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
 LaTeX Font Info:    ... okay on input line 10.
@@ -622,16 +622,25 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-[1
 
-{C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-[3]
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 14.
 
-LaTeX Warning: Reference `NSNAM' on page 4 undefined on input line 106.
+[1{C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
 
-[4]
-(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
-)
+]
+
+LaTeX Warning: Reference `UChicago' on page 2 undefined on input line 86.
+
+
+Overfull \hbox (45.06656pt too wide) in paragraph at lines 86--88
+[] \OT1/cmr/m/n/10 https://d3qi0qp55mx5f5.cloudfront.net/researchsafety/docs/La
+ser[]Safety[]Calculations.pdf?mtime=1610127144 
+ []
+
+[2]
+(C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\Laser.NOHD.calcul
+ations.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
@@ -642,33 +651,28 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 14720 strings out of 474486
- 301163 string characters out of 5742811
- 1939542 words of memory out of 5000000
- 36759 multiletter control sequences out of 15000+600000
- 560340 words of font info for 44 fonts, out of 8000000 for 9000
+ 14717 strings out of 474486
+ 301262 string characters out of 5742811
+ 1943542 words of memory out of 5000000
+ 36757 multiletter control sequences out of 15000+600000
+ 559436 words of font info for 41 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,14n,101p,425b,180s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,13n,101p,435b,201s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
 m/cmbx10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public
 /amsfonts/cm/cmbx12.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/t
 ype1/public/amsfonts/cm/cmex10.pfb><C:/Users/cromano/AppData/Local/Programs/MiK
 TeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/cromano/AppData/Local/P
-rograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/cromano/AppDa
-ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/cro
-mano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:
-/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr
-12.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfo
-nts/cm/cmr5.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmr7.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/
-type1/public/amsfonts/cm/cmr9.pfb><C:/Users/cromano/AppData/Local/Programs/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/cromano/AppData/Local/Pr
-ograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/cromano/AppDat
-a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
+rograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/cromano/AppDa
+ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/cro
+mano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/
+Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7
+.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
+s/cm/cmsy10.pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-FSOC.DataRate.pdf (4 pages, 175838 bytes).
+Laser.NOHD.calculations.pdf (2 pages, 110707 bytes).
 PDF statistics:
- 88 PDF objects out of 1000 (max. 8388607)
+ 57 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

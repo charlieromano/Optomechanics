@@ -23,7 +23,10 @@
 \begin{equation*}
 C = B\cdot \textrm{log}_2\left(1+\frac{S}{N}\right) \\
 \end{equation*}
-
+\subsection*{Bit Energy}
+\begin{align*}
+\frac{E_b}{N_0} &= \\
+\end{align*}
 \subsection*{Signal-to-Noise Ratio}
 
 \begin{align*}
@@ -44,6 +47,11 @@ i_S &= \frac{\eta e P_s}{h\nu} = \frac{0.85\cdot e \cdot 10 \textrm{ mW}}{h\cdot
 
 
 \subsection*{Bit Error Rate}
+\begin{align*}
+\textrm{4-QAM:   } BER &\approx \cdot Q\left(\sqrt{\frac{2E_b}{N_0}}\right)\\
+\textrm{16-QAM:   }BER &\approx 3\cdot Q\left(\sqrt{\frac{4E_b}{5N_0}}\right)
+\end{align*}
+
 \subsubsection*{OOK: On-Off Keying}
 \subsubsection*{QPSK: Quadrature Phase Keying}
 \subsubsection*{QAM: Quadrature Amplitude Modulation}
@@ -95,5 +103,8 @@ Pr_{\textrm{fade}} &= 1 -\frac{1}{2}\int_0^\infty (u)\textrm{erfc}\left(\frac{\t
 Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(u)\textrm{erfc}\left(\frac{\left\langle \textrm{SNR}\right\rangle u}{2\sqrt{2}}\right)du
 \end{align*}
 
+\section{References}
+\ref{NSNAM}
+https://www.nsnam.org/reviews/2016/socis-midterm/fso.html
 \end{document}
 
