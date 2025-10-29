@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  14 OCT 2025 11:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  29 OCT 2025 18:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -627,7 +627,7 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 {C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
 [3]
 
-LaTeX Warning: Reference `NSNAM' on page 4 undefined on input line 106.
+LaTeX Warning: Reference `NSNAM' on page 4 undefined on input line 134.
 
 [4]
 (C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
@@ -644,7 +644,7 @@ LaTeX Warning: There were undefined references.
 Here is how much of TeX's memory you used:
  14720 strings out of 474486
  301163 string characters out of 5742811
- 1939542 words of memory out of 5000000
+ 1937542 words of memory out of 5000000
  36759 multiletter control sequences out of 15000+600000
  560340 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -666,7 +666,7 @@ eX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/cromano/AppData/Local/Pr
 ograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/cromano/AppDat
 a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-FSOC.DataRate.pdf (4 pages, 175838 bytes).
+FSOC.DataRate.pdf (4 pages, 185809 bytes).
 PDF statistics:
  88 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
