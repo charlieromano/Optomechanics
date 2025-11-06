@@ -14,7 +14,116 @@
 \end{center}
 \pagebreak
 
-\section*{Digital Communication}
+\section*{Laser beam propagation\footnote{most equations according to Andrew-Phillips book.}}
+
+\begin{center}
+\includegraphics[scale=0.4]{pics/gaussianBeam}
+\end{center}
+
+\subsection*{Divergence}
+\begin{align*}
+\theta &= \frac{\lambda}{\pi W_0}
+\end{align*}
+
+\subsection*{Spot size}
+With $W_0=w_0$, the beam spot size is given by:\\
+\begin{align*}
+w(z) &\approx w_0 + z\theta
+\end{align*}
+\\with differs from beam diameter, which is $2w(z)$ using this convention referred to the graphic.
+
+\subsection*{Spot sizer under atmospheric turbulence}
+Long-term spot size $W_{\textrm{LT}}$:
+\begin{align*}
+W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle \\
+\end{align*}
+with $\left\langle r_c^2\right\rangle$ the beam wander displacement variance.\\
+ 
+\subsection*{Beam wander}
+RMS beam wander displacement:
+\begin{align*}
+\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
+\end{align*}
+with $r_0$ the Fried's parameter.
+
+\subsection*{Field of View (FOV)}
+\begin{align*}
+\textrm{FOV} &= 2\alpha = 2\tan^{-1}\left(\frac{d}{2f}\right) \approx \frac{d}{f}
+\end{align*}
+
+\subsection*{Gaussian beam}
+\begin{align*}
+U_0(r,0) = e^{\frac{-r^2}{W_0^2}-\frac{ikr^2}{2F_0}}
+\end{align*}
+
+\subsection*{Gaussian beam parameters}
+\begin{align*}
+\Theta_0 &= 1-\frac{L}{F_0} \\
+\\
+\Lambda_0 &= \frac{2L}{kW_0^2}  \\
+\end{align*}
+
+\subsection*{Gaussian Beam width}
+\begin{align*}
+W &= W_0\sqrt{\Theta_0^2+\Lambda_0^2} \\
+\end{align*}
+
+\subsection*{Irradiance on-axis}
+\begin{align*}
+I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right] \\
+\end{align*}
+
+\subsection*{Power at the receiver}
+\begin{align*}
+P_{R_x} &= P_{T_x}\cdot \left(1-e^\frac{-2r^2}{W^2}\right) [\textrm{W}]
+\end{align*}
+
+\subsection*{Irradiance at the receiver}
+\begin{align*}
+I_{R_x} &= 4\frac{P_{R_x}}{\pi D_{R_x}^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right]
+\end{align*}
+
+\section*{Refractive index structure parameter}
+
+\subsection*{HV: Hufnagel-Valley}
+\begin{align*}
+C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
+\end{align*}
+\begin{align*}
+C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}e^{\left(\frac{-h}{1000})\right)} 
++ 2.7\times 10^{-16}e^{\left(\frac{-h}{1500}\right)}
++ Ae^{\left(\frac{-h}{100}\right)}
+\end{align*}
+
+\subsection*{Rytov variance}
+\begin{align*}
+\sigma_R^2 &= 1.23C_n^2 k^{7/6}L^{11/6}
+\end{align*}
+
+\subsection*{Fried parameter (atmospheric coherence width)}
+For $C_n^2$ constant, horizontal propagation with uniform turbulence:
+\begin{align*}
+r_0 &= (0.16\cdot C_n^2 k^2 L)^{-3/5}
+\end{align*}
+\\
+For Horizontal link (plane wave):
+\begin{align*}
+r_0 &= \left(1.46C_n^2k^2L\right)^{-3/5}
+\end{align*}
+\\
+For Vertical link or slant paths:\\
+\begin{align*}
+r_0 &= \left[0.42\sec(\zeta)k^2\int_{h_0}^H C_n^2(h)dh\right]^{-3/5}
+\end{align*}
+
+with $\zeta$ the zenith angle ($\sec(0)=1$), $h_0$ the height above ground level of the uplink transitter and/or downlink receiver, $H=h_0+L\cos(\zeta)$ is the satellite altitude.
+
+\subsection*{Greenwood frequency}
+\begin{align*}
+f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}}^{5/3}(h)dh\right]^{3/5}
+\end{align*}
+
+\section*{Data Communication}
 \subsection*{Baud Rate}
 \subsection*{Bandwidth}
 \subsection*{Modulation}
@@ -23,12 +132,8 @@
 \begin{equation*}
 C = B\cdot \textrm{log}_2\left(1+\frac{S}{N}\right) \\
 \end{equation*}
-\subsection*{Bit Energy}
-\begin{align*}
-\frac{E_b}{N_0} &= \\
-\end{align*}
+\section{Optical Communication}
 \subsection*{Signal-to-Noise Ratio}
-
 \begin{align*}
 \textrm{SNR}_0 &= \frac{i_s}{\sigma_N} = \sqrt{\frac{\eta P_S}{2h\nu B}} \ \ \rightarrow \ \ 10\cdot \log(\textrm{SNR}_0) = 74.9 \textrm{ dB}
 \\
@@ -52,66 +157,6 @@ i_S &= \frac{\eta e P_s}{h\nu} = \frac{0.85\cdot e \cdot 10 \textrm{ mW}}{h\cdot
 \textrm{16-QAM:   }BER &\approx 3\cdot Q\left(\sqrt{\frac{4E_b}{5N_0}}\right)
 \end{align*}
 
-\subsubsection*{OOK: On-Off Keying}
-\subsubsection*{QPSK: Quadrature Phase Keying}
-\subsubsection*{QAM: Quadrature Amplitude Modulation}
-\subsection*{Data Rate}
-
-\section*{Photodetectors}
-\subsection*{Noise}
-\subsection*{APD}
-\subsection*{PIN}
-
-\section*{Laser transmitter}
-\subsection*{Amplitude modulation}
-\subsection*{Phase modulation}
-\subsection*{Polarization modulation}
-
-\section*{Laser beam propagation}
-\begin{align*}
-\theta &= \frac{\lambda}{\pi w_0}
-\\
-\\
-w(z) &\approx w_0 + z\theta
-\end{align*}
-\begin{align*}
-w_{\textrm{LT}}^2(L) = w_{\textrm{vac}}^2(L)+2.42k^{7/6}L^{11/6}w_0^{-1/3}C_n^2
-\end{align*}
-\subsection*{Free-space}
-\begin{align*}
-\Theta_0 &= 1-\frac{L}{F_0} \\
-\\
-\Lambda_0 &= \frac{2L}{kW_0^2}  \\
-\\
-W &= W_0\sqrt{\Theta_0^2+\Lambda_0^2} \\
-\\
-I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right] \\
-\\
-P_{R_x} &= P_{T_x}\cdot \left(1-e^\frac{-2r^2}{W^2}\right) [\textrm{W}]
-\end{align*}
-
-\begin{align*}
-I_{R_x} &= 4\frac{P_{R_x}}{\pi D_{R_x}^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right]
-\end{align*}
-
-\section*{Fried parameter}
-\begin{align*}
-r_0 &= \left(1.46C_n^2k^2R\right)^{-3/5} \textrm{   for Horizontal link}\\
-\\
-r_0 &= \left[0.423k^2\sec(\theta)\int_{h_0}^H C_n^2(h)dh\right]^{-3/5} \textrm{   for Vertical link}\\
-\end{align*}
-\section*{Refractive index structure parameter}
-\subsection*{HV: Hufnagel-Valley}
-\begin{align*}
-C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
-\end{align*}
-
-\section*{Greenwood frequency}
-\begin{align*}
-f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}}^{5/3}(h)dh\right]^{3/5}
-\end{align*}
-
-
 \subsection*{Mean SNR}
 \begin{align*}
 \left\langle\textrm{SNR}\right\rangle &= \frac{\textrm{SNR}_0}{\sqrt{\left(\frac{P_{S0}}{\left\langle P_S\right\rangle}\right)+\sigma_I^2(D_G)\textrm{SNR}_0^2}}
@@ -120,6 +165,7 @@ f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}
 \left\langle\textrm{SNR}\right\rangle &\cong \frac{1}{\sigma_1(D_G)}, \ \ \ \textrm{SNR}_0 \rightarrow \infty
 \\
 \\
+\left\langle\textrm{SNR}\right\rangle &= \frac{\left\langle i_S \right\rangle}{\sigma_N}
 \end{align*}
 
 \subsection*{Fading statistics}
@@ -129,6 +175,24 @@ Pr_{\textrm{fade}} &= 1 -\frac{1}{2}\int_0^\infty (u)\textrm{erfc}\left(\frac{\t
 \\
 Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(u)\textrm{erfc}\left(\frac{\left\langle \textrm{SNR}\right\rangle u}{2\sqrt{2}}\right)du
 \end{align*}
+
+\section{Modulation}
+\subsubsection*{OOK: On-Off Keying}
+\subsubsection*{QPSK: Quadrature Phase Keying}
+\subsubsection*{QAM: Quadrature Amplitude Modulation}
+\subsection*{Data Rates}
+
+\section*{Photodetectors}
+\subsection*{Noise}
+\subsection*{APD}
+\subsection*{PIN}
+\subsection*{QPD}
+
+\section*{Laser transmitter}
+\subsection*{Amplitude modulation}
+\subsection*{Phase modulation}
+\subsection*{Polarization modulation}
+
 
 \section{References}
 \ref{NSNAM}

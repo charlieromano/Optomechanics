@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  29 OCT 2025 18:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  6 NOV 2025 15:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -624,12 +624,32 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 
 [1
 
-{C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-[3]
+{C:/Users/cromano/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+<pics/gaussianBeam.png, id=11, 571.13374pt x 401.5pt>
+File: pics/gaussianBeam.png Graphic file (type png)
+<use pics/gaussianBeam.png>
+Package pdftex.def Info: pics/gaussianBeam.png  used on input line 20.
+(pdftex.def)             Requested size: 228.44945pt x 160.59715pt.
 
-LaTeX Warning: Reference `NSNAM' on page 4 undefined on input line 134.
+Underfull \hbox (badness 10000) in paragraph at lines 29--30
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 39--41
+
+ []
+
+[2 <./pics/gaussianBeam.png>] [3]
+Underfull \hbox (badness 10000) in paragraph at lines 112--115
+
+ []
 
 [4]
+
+LaTeX Warning: Reference `NSNAM' on page 5 undefined on input line 198.
+
+[5] [6]
 (C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
 )
  ***********
@@ -642,13 +662,13 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 14720 strings out of 474486
- 301163 string characters out of 5742811
- 1937542 words of memory out of 5000000
- 36759 multiletter control sequences out of 15000+600000
- 560340 words of font info for 44 fonts, out of 8000000 for 9000
+ 14750 strings out of 474486
+ 301658 string characters out of 5742811
+ 1939542 words of memory out of 5000000
+ 36781 multiletter control sequences out of 15000+600000
+ 563452 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,14n,101p,425b,180s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,14n,101p,425b,243s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
 m/cmbx10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public
 /amsfonts/cm/cmbx12.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/t
@@ -660,15 +680,18 @@ mano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:
 /Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr
 12.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfo
 nts/cm/cmr5.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmr7.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/
-type1/public/amsfonts/cm/cmr9.pfb><C:/Users/cromano/AppData/Local/Programs/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/cromano/AppData/Local/Pr
-ograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/cromano/AppDat
-a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
+lic/amsfonts/cm/cmr6.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmr7.pfb><C:/Users/cromano/AppData/Local/Programs/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/cromano/AppData/Local/Prog
+rams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users/cromano/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/croman
+o/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Us
+ers/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.
+pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-FSOC.DataRate.pdf (4 pages, 185809 bytes).
+FSOC.DataRate.pdf (6 pages, 240778 bytes).
 PDF statistics:
- 88 PDF objects out of 1000 (max. 8388607)
+ 105 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 13 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 18 words of extra memory for PDF output out of 10000 (max. 10000000)
 
