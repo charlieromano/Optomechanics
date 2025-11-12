@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  20 OCT 2025 17:43
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  12 NOV 2025 17:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -630,10 +630,10 @@ LaTeX Warning: No positions in optional float specifier.
 
 ]
 
-LaTeX Warning: Reference `UChicago' on page 2 undefined on input line 86.
+LaTeX Warning: Reference `UChicago' on page 2 undefined on input line 96.
 
 
-Overfull \hbox (45.06656pt too wide) in paragraph at lines 86--88
+Overfull \hbox (45.06656pt too wide) in paragraph at lines 96--98
 [] \OT1/cmr/m/n/10 https://d3qi0qp55mx5f5.cloudfront.net/researchsafety/docs/La
 ser[]Safety[]Calculations.pdf?mtime=1610127144 
  []
@@ -651,11 +651,11 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 14717 strings out of 474486
- 301262 string characters out of 5742811
+ 14719 strings out of 474486
+ 301291 string characters out of 5742811
  1943542 words of memory out of 5000000
- 36757 multiletter control sequences out of 15000+600000
- 559436 words of font info for 41 fonts, out of 8000000 for 9000
+ 36759 multiletter control sequences out of 15000+600000
+ 560041 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,13n,101p,435b,201s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
@@ -670,7 +670,7 @@ Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7
 .pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
 s/cm/cmsy10.pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-Laser.NOHD.calculations.pdf (2 pages, 110707 bytes).
+Laser.NOHD.calculations.pdf (2 pages, 111297 bytes).
 PDF statistics:
  57 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

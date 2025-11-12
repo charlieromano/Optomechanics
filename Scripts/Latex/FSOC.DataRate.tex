@@ -19,6 +19,7 @@
 \begin{center}
 \includegraphics[scale=0.4]{pics/gaussianBeam}
 \end{center}
+In the plot, $W_r(z_r)$ belongs to beam width at Rayleigh distance $z_r$, $W_0$ to the beam waist and $W(z)$ to the beam width at any distance $z$, and $\theta$ the beam divergence. \\
 
 \subsection*{Divergence}
 \begin{align*}
@@ -53,9 +54,14 @@ with $r_0$ the Fried's parameter.
 
 \subsection*{Gaussian beam}
 \begin{align*}
-U_0(r,0) = e^{\frac{-r^2}{W_0^2}-\frac{ikr^2}{2F_0}}
+U_0(r,0) = \exp\left(-\frac{r^2}{W_0^2}-\frac{ikr^2}{2F_0}\right)
 \end{align*}
-
+\begin{align*}
+U_0(r,L) = \frac{1}{p(L)}\exp(ikL)\exp\left(-\frac{r^2}{W_0^2}-\frac{ikr^2}{2F_0}\right)
+\end{align*}
+\begin{align*}
+p(L) &= 1 - \frac{L}{F_0}+i\frac{2L}{kW_0^2}
+\end{align*}
 \subsection*{Gaussian beam parameters}
 \begin{align*}
 \Theta_0 &= 1-\frac{L}{F_0} \\
