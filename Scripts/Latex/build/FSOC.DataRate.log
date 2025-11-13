@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  7 NOV 2025 11:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  13 NOV 2025 17:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -646,15 +646,25 @@ Underfull \hbox (badness 10000) in paragraph at lines 40--42
  []
 
 [2 <./pics/gaussianBeam.png>] [3]
-Underfull \hbox (badness 10000) in paragraph at lines 118--121
+Underfull \hbox (badness 10000) in paragraph at lines 127--130
 
  []
 
-[4]
 
-LaTeX Warning: Reference `NSNAM' on page 5 undefined on input line 204.
+Underfull \hbox (badness 10000) in paragraph at lines 134--138
 
-[5] [6]
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 134--138
+
+ []
+
+[4] [5]
+
+LaTeX Warning: Reference `NSNAM' on page 6 undefined on input line 235.
+
+[6]
 (C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
 )
  ***********
@@ -669,7 +679,7 @@ LaTeX Warning: There were undefined references.
 Here is how much of TeX's memory you used:
  14750 strings out of 474486
  301658 string characters out of 5742811
- 1941542 words of memory out of 5000000
+ 1939542 words of memory out of 5000000
  36781 multiletter control sequences out of 15000+600000
  563452 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -694,7 +704,7 @@ o/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Us
 ers/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.
 pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-FSOC.DataRate.pdf (6 pages, 240552 bytes).
+FSOC.DataRate.pdf (6 pages, 243637 bytes).
 PDF statistics:
  105 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

@@ -95,11 +95,20 @@ I_{R_x} &= 4\frac{P_{R_x}}{\pi D_{R_x}^2} \left[ \frac{\textrm{W}}{\textrm{m}^2}
 \begin{align*}
 C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
 \end{align*}
+
 \begin{align*}
 C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}e^{\left(\frac{-h}{1000})\right)} 
 + 2.7\times 10^{-16}e^{\left(\frac{-h}{1500}\right)}
 + Ae^{\left(\frac{-h}{100}\right)}
 \end{align*}
+
+\begin{align*}
+C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}\exp\left[-\frac{h}{1000}\right] 
++ 2.7\times 10^{-16}\exp\left[-\frac{h}{1500}\right]
++ A\exp\left[-\frac{h}{100}\right]
+\end{align*}
+
+with $A=1.17\times 10^{-14}\textrm{m}^{-2/3}$ and $w=21\ \textrm{m/s}$ recommended by ITU for night observations.
 
 \subsection*{Rytov variance}
 \begin{align*}
@@ -122,12 +131,34 @@ For Vertical link or slant paths:\\
 r_0 &= \left[0.42\sec(\zeta)k^2\int_{h_0}^H C_n^2(h)dh\right]^{-3/5}
 \end{align*}
 
-with $\zeta$ the zenith angle ($\sec(0)=1$), $h_0$ the height above ground level of the uplink transitter and/or downlink receiver, $H=h_0+L\cos(\zeta)$ is the satellite altitude.
+with $\zeta$ the zenith angle ($\sec(0)=1$), $h_0$ the height above ground level of the uplink transitter and/or downlink receiver, $H=h_0+L\cos(\zeta)$ is the satellite altitude. \\
+\\
+Downlink can be approximated by a plane wave. Use vertical link formula.\\
+Uplink can be approximated by a spherical wave. Use next formula:\\
+
+\begin{align*}
+r_0 &= \left[0.42\sec(\zeta)k^2\int_{h_0}^H C_n^2(h)\left(1-\frac{h-h_{OGS}}{H-h_{OGS}}\right)
+dh\right]^{-3/5}
+\end{align*}
+with H the satellite altitude, $h_{OGS}$ the altitude of the OGS receiver, and h the integrand.
+
 
 \subsection*{Greenwood frequency}
 \begin{align*}
 f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}}^{5/3}(h)dh\right]^{3/5}
 \end{align*}
+
+\subsection*{Scintillation}
+\begin{align*}
+\sigma_I^2 &= 
+\end{align*}
+
+\begin{align*}
+L_{SI} &= 4.343\{\ \textrm{erf}^{-1} (2\rho_{th}-1)\left[ 2\ln(\sigma_I^2+1)\right]^{\frac{1}{2}} - \frac{1}{2}\ln (\sigma_I^2 + 1) \}
+\end{align*}
+
+
+
 
 \section*{Data Communication}
 \subsection*{Baud Rate}
