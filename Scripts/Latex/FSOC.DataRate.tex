@@ -33,19 +33,6 @@ w(z) &\approx w_0 + z\theta
 \end{align*}
 \\with differs from beam diameter, which is $2w(z)$ using this convention referred to the graphic.
 
-\subsection*{Spot sizer under atmospheric turbulence}
-Long-term spot size $W_{\textrm{LT}}$:
-\begin{align*}
-W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle \\
-\end{align*}
-with $\left\langle r_c^2\right\rangle$ the beam wander displacement variance.\\
- 
-\subsection*{Beam wander}
-RMS beam wander displacement:
-\begin{align*}
-\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
-\end{align*}
-with $r_0$ the Fried's parameter.
 
 \subsection*{Field of View (FOV)}
 \begin{align*}
@@ -89,18 +76,65 @@ P_{R_x} &= P_{T_x}\cdot \left(1-e^\frac{-2r^2}{W^2}\right) [\textrm{W}]
 I_{R_x} &= 4\frac{P_{R_x}}{\pi D_{R_x}^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right]
 \end{align*}
 
-\section*{Refractive index structure parameter}
+\section*{Atmospheric channel effects}
+\subsection*{Kolmogorov outer scale and inner scale}
+Inertial range:\\
+
+\begin{align*}
+D_{RR}(R) &= \left\langle (V_1 - V_2)^2\right\rangle = C_V^2R^{2/3}
+\end{align*}
+
+\begin{equation*}
+D_{RR}(R)  = \left\{
+\begin{array}{ll}
+	C_v^2 \ell_0^{-4/3}R^2  & ,\ 0<R<<\ell_0\\
+	\\
+	C_v^2 R^{2/3}  & ,\ \ell_0<<R<<L_0
+\end{array} 
+\right .
+\end{equation*}
+
+\begin{center}
+\includegraphics[scale=0.5]{pics/KolmogorovLargeScaleSmallScale.png}
+\end{center}
+
+
+\subsection*{Beam spreading (Spot size)}
+Long-term spot size $W_{\textrm{LT}}$:
+\begin{align*}
+W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle \\
+\end{align*}
+with $\left\langle r_c^2\right\rangle$ the beam wander displacement variance.\\
+\\
+Loss (Uplink)jki09:\\
+\begin{align*}
+L_{SR} = \left[1+\left(\frac{D_T}{r_0}\right)^{\frac{5}{3}}\right]^{-\frac{6}{5}}
+\end{align*}
+ 
+\subsection*{Beam wander}
+Beam wander variance:
+\begin{align*}
+\left\langle r_c^2\right \rangle &= 0.54\left(H-h_{OGS}\right)^2\sec^2(\zeta)\left(\frac{\lambda}{2W_0}\right)^2\left(\frac{2W_0}{r_0}\right)^{5/3}
+\end{align*}
+\\
+RMS beam wander displacement:
+\begin{align*}
+\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
+\end{align*}
+with $r_0$ the Fried's parameter.\\
+
+\subsection*{Refractive index structure parameter}
 
 \subsection*{HV: Hufnagel-Valley}
-\begin{align*}
-C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
-\end{align*}
-
-\begin{align*}
-C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}e^{\left(\frac{-h}{1000})\right)} 
-+ 2.7\times 10^{-16}e^{\left(\frac{-h}{1500}\right)}
-+ Ae^{\left(\frac{-h}{100}\right)}
-\end{align*}
+%\begin{align*}
+%C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
+%\end{align*}
+%
+%\begin{align*}
+%C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}e^{\left(\frac{-h}{1000})\right)} 
+%+ 2.7\times 10^{-16}e^{\left(\frac{-h}{1500}\right)}
+%+ Ae^{\left(\frac{-h}{100}\right)}
+%\end{align*}
 
 \begin{align*}
 C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}\exp\left[-\frac{h}{1000}\right] 
@@ -149,10 +183,12 @@ f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}
 \end{align*}
 
 \subsection*{Scintillation}
+Scintillation index:
 \begin{align*}
 \sigma_I^2 &= 
 \end{align*}
 
+Loss:
 \begin{align*}
 L_{SI} &= 4.343\{\ \textrm{erf}^{-1} (2\rho_{th}-1)\left[ 2\ln(\sigma_I^2+1)\right]^{\frac{1}{2}} - \frac{1}{2}\ln (\sigma_I^2 + 1) \}
 \end{align*}
