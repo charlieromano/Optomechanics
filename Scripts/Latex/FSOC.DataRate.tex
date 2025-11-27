@@ -60,6 +60,16 @@ p(L) &= 1 - \frac{L}{F_0}+i\frac{2L}{kW_0^2}
 \begin{align*}
 W &= W_0\sqrt{\Theta_0^2+\Lambda_0^2} \\
 \end{align*}
+\subsection*{Beam width at FWHM and $1/e^2$}
+\begin{align*}
+W_{\rm{1/e^2}} &= \frac{W_{\rm{FWHM}}}{\sqrt{2\ln 2}} \\
+\end{align*}
+\subsection*{Divergence at FWHM and $1/e^2$}
+\begin{align*}
+\theta_{\rm{1/e^2}} &= \frac{2\lambda}{\pi W_0(0)} \\
+\\
+\theta_{\rm{FWHM}} &= \sqrt{\frac{\ln 2}{2}}\cdot \theta_{\rm{1/e^2}} \\
+\end{align*}
 
 \subsection*{Irradiance on-axis}
 \begin{align*}
@@ -259,6 +269,15 @@ Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(
 \subsection*{Noise}
 \subsection*{APD}
 \subsection*{PIN}
+\subsubsection*{InGaAS}
+
+Example: InGaAs PIN photodiode G6854-01
+
+\begin{itemize}
+\item Sensitivity $\rm S = 0.95 \ \rm A/\rm W$
+\item Noise Equivalent Power: $\rm{NEP} = 2\times 10^{-15} \rm \ W/\sqrt{\rm{Hz}}$
+\end{itemize}
+
 \subsection*{QPD}
 
 \section*{Laser transmitter}
