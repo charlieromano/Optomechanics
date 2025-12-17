@@ -24,7 +24,7 @@
 \pagebreak
 
 \section{Laser beam propagation}
-Most equations according to Andrew-Phillips book.
+Most of the equations according to Andrew-Phillips book.
 
 \begin{center}
 \includegraphics[scale=0.4]{pics/gaussianBeam}
@@ -87,6 +87,7 @@ I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \rig
 \end{align*}
 \section{Link budget}
 
+\begin{center}
 \begin{table}[]
 \begin{tabular}{llllll}
 \hline
@@ -106,6 +107,7 @@ Budget  & Power at detector       & $P_{Rx}$  &          &        & dB   \\
         & Link margin             &           &          &        & dB   \\ \hline
 \end{tabular}
 \end{table}
+\end{center}
 
 \subsection{Power at the receiver}
 \begin{align*}
@@ -163,7 +165,92 @@ RMS beam wander displacement:
 \sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
 \end{align*}
 with $r_0$ the Fried's parameter.\\
+\subsection{Extended Rytov theory}
+The received irradiance of an optical wave can be modeled as a modulation process in which small-scale (diffractive) fluctuations are multiplicatively modulated by statistically independent large-scale (refractive) fluctuations:
+\begin{align*}
+n_{eff} (\textbf{R}) &=  n_X(\textbf{R})+n_Y(\textbf{R})
+\end{align*}
+$X$ from large scale effects; $Y$ from small scale effects.
+\begin{align*}
+U(\textbf{r}, L) &= U_0(\textbf{r}, L)\cdot e^{\psi_X(\textbf{r}, L)}\cdot e^{\psi_Y(\textbf{r}, L)}
+\end{align*}
+$\psi_X$,$\psi_Y$ complex phase perturbations on the propagating wave.\\
+\\
 
+\begin{minipage}[b]{0.5\textwidth}
+\begin{itemize}
+\item $l_o$ inner scale of turbulence;
+\item $L_o$ outer scale of turbulence;
+\item $\sqrt{L/k}$ first Fresnel zone;
+\item $\rho_0$ spatial coherence radius of the optical wave;
+\item $L/k\rho_0$ scattering disk;
+\end{itemize}
+\end{minipage}
+\begin{minipage}[c]{0.5\textwidth}
+Def. scattering disk: refractive cell size $l$ at which the focusing angle $\theta_F\sim l/L$ is equal to the average scattering angle $\theta_D$.\\
+
+Three regions defined:
+\begin{itemize}
+\item $l_1\sim\rho_0$; Coherence radius 
+\item $l_2\sim\sqrt{L/k}$; Fresnel zone
+\item $l_3\sim L/k\rho_0$; Scattering disk
+\end{itemize}
+\end{minipage}
+\\
+
+\fbox
+{
+\begin{minipage}{0.5\textwidth}
+\textbf{Weak fluctuations regime}\\
+Fresnel zone $<$ Transverse spatial coherence radius\\
+\begin{align*}
+\sqrt{L/k} &< \rho_0\\
+\theta_D \sim \frac{\lambda}{\sqrt{L/k}}&\sim 1/\sqrt{L/k}
+\end{align*}
+scattering disk ~ on the order of 1st Fresnel zone $l_2$
+\end{minipage}
+}
+\fbox
+{
+\begin{minipage}{0.5\textwidth}
+\textbf{Strong fluctuations regime}\\
+\begin{align*}
+\sqrt{L/k} &> \rho_0\\
+\theta_D \sim \frac{\lambda}{\rho_0}&\sim 1/k\rho_0
+\end{align*}
+scattering disk $\sim l_3$ when $\sqrt{L/k}\equiv \rho_0$\\
+then $l_1\sim l_2\sim l_3$
+\end{minipage}
+}
+\subsection{Scintillation index model}
+(...) One random process modulating another: (...) the atmosphere is the modulation process of the instantaneous light that passes through it:
+\begin{align*}
+\hat{I} &= \frac{I}{\langle I \rangle} = XY
+\end{align*}
+\begin{itemize}
+\item $X$ from large scale effects;
+\item $Y$ from small scale effects;
+\end{itemize}
+\textbf{Second moment}
+\begin{align*}
+\langle \hat{I}^2 \rangle &= \langle X^2 \rangle\langle Y^2 \rangle\\
+	&= (1+\sigma_X^2)(1+\sigma_Y^2)
+\end{align*}
+assuming $\langle X \rangle=\langle Y \rangle=1$ and $\sigma_x^2$, $\sigma_Y^2$ normalized variances
+\begin{align*}
+\sigma_I^2 &= (1+\sigma_X^2)(1+\sigma_Y^2)-1\\
+&= \sigma_X^2+\sigma_Y^2+\sigma_X^2\sigma_Y^2
+\end{align*}
+using Rytov log amplitude of an optical wave (variance of log irradiance) results:
+\begin{align*}
+\sigma_I^2 &= \exp(\sigma^2_{\ln X}+\sigma^2_{\ln Y})-1
+\end{align*}
+then in weak irradiance fluctuations results:
+\begin{align*}
+\sigma_X^2 &\cong \sigma^2_{\ln X}\\
+\sigma_Y^2 &\cong \sigma^2_{\ln Y}\\
+\sigma_I^2 &= \sigma^2_{\ln I} = \sigma^2_{\ln X}+\sigma^2_{\ln Y}
+\end{align*}
 \subsection{Refractive index structure parameter}
 
 \subsection{HV: Hufnagel-Valley}
