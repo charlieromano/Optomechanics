@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  17 DEC 2025 13:21
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.8.19)  23 DEC 2025 14:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -798,7 +798,7 @@ Package hyperref Info: Link coloring ON on input line 18.
 
 
 [2]
-<pics/gaussianBeam.png, id=313, 571.13374pt x 401.5pt>
+<pics/gaussianBeam.png, id=308, 571.13374pt x 401.5pt>
 File: pics/gaussianBeam.png Graphic file (type png)
 <use pics/gaussianBeam.png>
 Package pdftex.def Info: pics/gaussianBeam.png  used on input line 30.
@@ -848,89 +848,94 @@ Underfull \hbox (badness 10000) in paragraph at lines 124--125
  []
 
 [4]
-<pics/KolmogorovLargeScaleSmallScale.png, id=329, 556.32843pt x 369.63094pt>
+<pics/KolmogorovLargeScaleSmallScale.png, id=324, 556.32843pt x 369.63094pt>
 File: pics/KolmogorovLargeScaleSmallScale.png Graphic file (type png)
 <use pics/KolmogorovLargeScaleSmallScale.png>
 Package pdftex.def Info: pics/KolmogorovLargeScaleSmallScale.png  used on input
  line 141.
 (pdftex.def)             Requested size: 278.16353pt x 184.815pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 149--153
+Underfull \hbox (badness 10000) in paragraph at lines 153--156
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 149--153
+Underfull \hbox (badness 10000) in paragraph at lines 153--156
 
  []
 
 [5 <./pics/KolmogorovLargeScaleSmallScale.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 166--168
+Underfull \hbox (badness 10000) in paragraph at lines 167--168
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 176--179
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 176--179
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 190--191
-
- []
-
-
-Overfull \hbox (17.22221pt too wide) in paragraph at lines 180--200
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 157--177
 [][] $[]$ 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 180--200
+Underfull \hbox (badness 10000) in paragraph at lines 157--177
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 212--212
+Underfull \hbox (badness 10000) in paragraph at lines 189--189
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 224--224
+Underfull \hbox (badness 10000) in paragraph at lines 201--201
 
  []
 
 
-Overfull \hbox (44.1555pt too wide) in paragraph at lines 212--225
+Overfull \hbox (44.1555pt too wide) in paragraph at lines 189--202
 [][] [] 
  []
 
 [6]
-Underfull \hbox (badness 10000) in paragraph at lines 289--292
+Underfull \hbox (badness 10000) in paragraph at lines 279--282
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 296--300
+Underfull \hbox (badness 10000) in paragraph at lines 286--290
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 296--300
+Underfull \hbox (badness 10000) in paragraph at lines 286--290
 
  []
 
-[7] [8] [9]
+[7]
+Underfull \hbox (badness 10000) in paragraph at lines 323--327
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 323--327
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 335--337
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 343--345
+
+ []
+
+[8] [9]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 397.
+(hyperref)                than one, level fixed on input line 406.
 
 
-LaTeX Warning: Reference `NSNAM' on page 10 undefined on input line 424.
+LaTeX Warning: Reference `NSNAM' on page 10 undefined on input line 433.
 
 [10] [11]
 (C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\FSOC.DataRate.aux
@@ -944,16 +949,16 @@ L3 programming layer <2024-01-04>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `FSOC.DataRate.out' has not changed.
-(rerunfilecheck)             Checksum: 16DCA4F4FC8D2907A6A93CB4648B1559;8567.
+(rerunfilecheck)             Checksum: 45E5CA97C7C2B3BB653195E01F16CE9D;8442.
  ) 
 Here is how much of TeX's memory you used:
- 21809 strings out of 474486
- 412705 string characters out of 5742811
- 1951542 words of memory out of 5000000
- 43667 multiletter control sequences out of 15000+600000
+ 21807 strings out of 474486
+ 412671 string characters out of 5742811
+ 1950542 words of memory out of 5000000
+ 43666 multiletter control sequences out of 15000+600000
  561294 words of font info for 47 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,14n,101p,446b,590s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,14n,101p,446b,572s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\cromano\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tc
 rm1000.pk><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/am
 sfonts/cm/cmbx10.pfb><C:/Users/cromano/AppData/Local/Programs/MiKTeX/fonts/type
@@ -974,9 +979,9 @@ o/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Us
 ers/cromano/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.
 pfb>
 Output written on C:\Users\cromano\Documents\Optomechanics\Scripts\Latex\build\
-FSOC.DataRate.pdf (11 pages, 333743 bytes).
+FSOC.DataRate.pdf (11 pages, 336027 bytes).
 PDF statistics:
- 446 PDF objects out of 1000 (max. 8388607)
- 71 named destinations out of 1000 (max. 500000)
- 487 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 441 PDF objects out of 1000 (max. 8388607)
+ 70 named destinations out of 1000 (max. 500000)
+ 479 words of extra memory for PDF output out of 10000 (max. 10000000)
 

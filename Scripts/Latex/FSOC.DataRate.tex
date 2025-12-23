@@ -89,7 +89,7 @@ I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \rig
 
 \begin{center}
 \begin{table}[]
-\begin{tabular}{llllll}
+\begin{tabular}{|l|l|l|l|l|l|}
 \hline
         & Component               & Symbol    & Downlink & Uplink & Unit \\ \hline
 Tx      & Mean power              & $P_{Tx}$  &          &        & dB   \\
@@ -142,29 +142,6 @@ D_{RR}(R)  = \left\{
 \end{center}
 
 
-\subsection{Beam spreading (Spot size)}
-Long-term spot size $W_{\textrm{LT}}$:
-\begin{align*}
-W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle \\
-\end{align*}
-with $\left\langle r_c^2\right\rangle$ the beam wander displacement variance.\\
-\\
-Loss (Uplink)jki09:\\
-\begin{align*}
-L_{SR} = \left[1+\left(\frac{D_T}{r_0}\right)^{\frac{5}{3}}\right]^{-\frac{6}{5}}
-\end{align*}
- 
-\subsection{Beam wander}
-Beam wander variance:
-\begin{align*}
-\left\langle r_c^2\right \rangle &= 0.54\left(H-h_{OGS}\right)^2\sec^2(\zeta)\left(\frac{\lambda}{2W_0}\right)^2\left(\frac{2W_0}{r_0}\right)^{5/3}
-\end{align*}
-\\
-RMS beam wander displacement:
-\begin{align*}
-\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
-\end{align*}
-with $r_0$ the Fried's parameter.\\
 \subsection{Extended Rytov theory}
 The received irradiance of an optical wave can be modeled as a modulation process in which small-scale (diffractive) fluctuations are multiplicatively modulated by statistically independent large-scale (refractive) fluctuations:
 \begin{align*}
@@ -241,7 +218,7 @@ assuming $\langle X \rangle=\langle Y \rangle=1$ and $\sigma_x^2$, $\sigma_Y^2$ 
 \sigma_I^2 &= (1+\sigma_X^2)(1+\sigma_Y^2)-1\\
 &= \sigma_X^2+\sigma_Y^2+\sigma_X^2\sigma_Y^2
 \end{align*}
-using Rytov log amplitude of an optical wave (variance of log irradiance) results:
+using Rytov log amplitude of an optical wave (variance of log irradiance), and $\sigma^2_X=e^{\sigma_{\ln X}}-1$ idem Y, results:
 \begin{align*}
 \sigma_I^2 &= \exp(\sigma^2_{\ln X}+\sigma^2_{\ln Y})-1
 \end{align*}
@@ -251,6 +228,13 @@ then in weak irradiance fluctuations results:
 \sigma_Y^2 &\cong \sigma^2_{\ln Y}\\
 \sigma_I^2 &= \sigma^2_{\ln I} = \sigma^2_{\ln X}+\sigma^2_{\ln Y}
 \end{align*}
+
+\textbf{Loss}
+\begin{align*}
+L_{SI} &= 4.343\{\ \textrm{erf}^{-1} (2\rho_{th}-1)\left[ 2\ln(\sigma_I^2+1)\right]^{\frac{1}{2}} - \frac{1}{2}\ln (\sigma_I^2 + 1) \}
+\end{align*}
+
+
 \subsection{Refractive index structure parameter}
 
 \subsection{HV: Hufnagel-Valley}
@@ -265,18 +249,24 @@ then in weak irradiance fluctuations results:
 %\end{align*}
 
 \begin{align*}
-C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}\exp\left[-\frac{h}{1000}\right] 
-+ 2.7\times 10^{-16}\exp\left[-\frac{h}{1500}\right]
-+ A\exp\left[-\frac{h}{100}\right]
+C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}\exp\left(-\frac{h}{1000}\right) 
++ 2.7\times 10^{-16}\exp\left(-\frac{h}{1500}\right)
++ A\exp\left(-\frac{h}{100}\right)
 \end{align*}
 
 with $A=1.17\times 10^{-14}\textrm{m}^{-2/3}$ and $w=21\ \textrm{m/s}$ recommended by ITU for night observations.
 
 \subsection{Rytov variance}
+Also called variance of log irradiance, denotes the strength of scintillation:
 \begin{align*}
 \sigma_R^2 &= 1.23C_n^2 k^{7/6}L^{11/6}
 \end{align*}
-
+where different turbulence loads are considered as follows:
+\begin{itemize}
+\item $\sigma^2_R \leq 0.5$ Weak turbulence;
+\item $0.5 < \sigma^2_R \leq 5$ Medium to strong;
+\item $5 < \sigma^2_R \leq 25$ Strong to saturation regime.
+\end{itemize}
 \subsection{Fried parameter (Coherence width)}
 For $C_n^2$ constant, horizontal propagation with uniform turbulence:
 \begin{align*}
@@ -310,16 +300,7 @@ with H the satellite altitude, $h_{OGS}$ the altitude of the OGS receiver, and h
 f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}}^{5/3}(h)dh\right]^{3/5}
 \end{align*}
 
-\subsection{Scintillation}
-Scintillation index:
-\begin{align*}
-\sigma_I^2 &= 
-\end{align*}
 
-Loss:
-\begin{align*}
-L_{SI} &= 4.343\{\ \textrm{erf}^{-1} (2\rho_{th}-1)\left[ 2\ln(\sigma_I^2+1)\right]^{\frac{1}{2}} - \frac{1}{2}\ln (\sigma_I^2 + 1) \}
-\end{align*}
 
 \section{Link Distance}
 With $R_E$ the Earth radius, $H_{OGS}$ the ground station height, $H$ or $H_{sat}$ the satellite altitude, and the angles referred to the corresponding figure:
@@ -334,6 +315,34 @@ L &= \sqrt{ (R_E+H_{OGS})^2 + (R_E + H_{sat})^2 - 2(R_E + H_{OGS})(R_E + H_{sat}
 \begin{align*}
 d_{max} = -R_E\sin \alpha+\sqrt{(R_E\sin\alpha)^2+H^2+2R_E H}
 \end{align*}
+
+\subsection{Beam spreading (Spot size)}
+Long-term spot size $W_{\textrm{LT}}$ assumed to have long-term Gaussian intensity profile:
+\begin{align*}
+W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle 
+\end{align*}
+with $r_c$ the centroid movement, amd $\sqrt{\left\langle r_c^2\right\rangle}$ its standard deviation, or beam wander displacement variance.\\
+\\
+Loss (Uplink)jki09:\\
+\begin{align*}
+L_{SR} = \left[1+\left(\frac{D_T}{r_0}\right)^{\frac{5}{3}}\right]^{-\frac{6}{5}}
+\end{align*}
+ 
+\subsection{Beam wander}
+Beam wander variance:
+\begin{align*}
+\left\langle r_c^2\right \rangle &= 0.54\left(H-h_{OGS}\right)^2\sec^2(\zeta)\left(\frac{\lambda}{2W_0}\right)^2\left(\frac{2W_0}{r_0}\right)^{5/3}
+\end{align*}
+assuming an infinite outer scale of turbulence for a collimated Gaussian beam.\\
+\begin{align*}
+\left\langle r_c^2\right\rangle &= 7.25L^2 W_0^{-1/3}\csc(\epsilon)\int^H_{h_0} C^2_n(h)\left(1-\frac{h-h_0}{L\sin\epsilon}\right)^2  dh
+\end{align*}
+RMS beam wander displacement:
+\begin{align*}
+\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
+\end{align*}
+with $r_0$ the Fried's parameter.\\
+
 \section{Pointing Error}
 \subsection{Two-line element error}
 \subsection{Star tracker error}
