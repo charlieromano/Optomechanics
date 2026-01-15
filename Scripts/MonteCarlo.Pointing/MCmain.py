@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-import numpy as np
+
+# ============================================================
+# 1. Path
+# ============================================================
 
 class Path(ABC):
     @abstractmethod
@@ -12,71 +15,7 @@ class Path(ABC):
     def time_step(self):
         pass
 
-# ============================================================
-# 1. Parameters
-# ============================================================
-sigma_open_loop = 4e-3 # rad
-sigma_jitter = 0.04e-3 # rad
-theta_FoU = 3*sigma_open_loop # rad
 
-# Divergence angle limits
-theta_div_min = 0.1e-3 # rad
-theta_div_max = 3.0e-3 # rad
-theta_div = 100e-6 # rad
-
-# Spiral parameters
-k = 1.25 # Overlap factor
-theta_spiral_step = k*theta_div # rad
-
-# Link distance
-Link_Distance = 500e6 # meters
-
-# Acquisition Energy threshold
-E_threshold =  0.025 # Joules = Irradiance_threshold * sensor_area
-acquistion_irradiance_min = 15e-6 # W/m^2 Eagle-1
-acquistion_irradiance_max = 510e-6 # W/m^2 Eagle-1
-P_Rx = 0.1e-6 # Watt
-
-# Time parameters
-T_acq_max = 300.0 # seconds
-T_step = 1.0 # seconds
-T_dwell_min = E_threshold / acquistion_irradiance_max # seconds
-T_dwell_max = E_threshold / acquistion_irradiance_min # seconds
-
-# Sensor size
-sensor_size = 1e-4 # m^2 (1e-4m^2 = 1cm^2)
-sensor_QE = 0.65 # Quantum efficiency
-
-# Rx aperture diameter limits
-D_Rx_min = 0.01 # m
-D_Rx_max = 0.20 # m
-# Tx Power limits
-P_Tx = 2.5 # Watt
-P_Tx_min = 1.0 # Watt
-P_Tx_max = 4.0 # Watt
-# Tx aperture diameter limits
-D_Tx = 0.5 # m
-D_Tx_min = 0.01 # m
-D_Tx_max = 0.8 # m
-
-# ============================================================
-# 2. Model
-# ============================================================
-# Define parameters using MCParameter
-
-class ScanPatternModel:
-    def __init__(self, speed, radius):
-        self.speed = speed
-        self.radius = radius
-    def generate_trajectory(self):
-        theta = np.linspace(0, 2 * np.pi, 500)
-        x = self.radius * np.cos(theta)
-        y = self.radius * np.sin(theta)
-        trajectory = np.vstack((x, y)).T
-        length = 2 * np.pi * self.radius
-        time = length / self.speed
-        return trajectory, time
-    
 class SpiralPath(Path):
     def __init__(self, spiral_step, max_radius, velocity):
         self.spiral_step = spiral_step
@@ -91,13 +30,47 @@ class SpiralPath(Path):
             r = self.spiral_step * theta
             if r > self.max_radius:
                 break
-            points.append([r*np.cos(theta), r*np.sin(theta)])
+            points.append([r * np.cos(theta), r * np.sin(theta)])
             theta += self.spiral_step
 
         return np.array(points)
 
     def time_step(self):
         return self.spiral_step / self.velocity
+
+
+# ============================================================
+# 2. Experiment Result
+# ============================================================
+
+class ExperimentResult:
+    def __init__(self, target, trajectory, hit, time_to_hit, total_time):
+        self.target = target
+        self.trajectory = trajectory
+        self.hit = hit
+        self.time_to_hit = time_to_hit
+        self.total_time = total_time
+
+    def plot_geometry(self, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        ax.plot(self.trajectory[:, 0], self.trajectory[:, 1], 'k-', lw=1)
+        color = 'green' if self.hit else 'red'
+        ax.scatter(*self.target, c=color, s=50, zorder=3)
+
+        ax.set_aspect("equal")
+        ax.set_title(
+            f"{'HIT' if self.hit else 'MISS'} | "
+            f"t = {self.time_to_hit:.2f}s"
+        )
+        ax.grid(True)
+        return ax
+
+
+# ============================================================
+# 3. Model
+# ============================================================
 
 class AcquisitionModel:
     def __init__(self, path, hit_radius):
@@ -111,24 +84,29 @@ class AcquisitionModel:
 
         for p in traj:
             if np.linalg.norm(p - target) <= self.hit_radius:
-                return {
-                    "acquired": True,
-                    "time_to_hit": time,
-                    "trajectory": traj,
-                    "target": target
-                }
+                return ExperimentResult(
+                    target=target,
+                    trajectory=traj,
+                    hit=True,
+                    time_to_hit=time,
+                    total_time=time
+                )
             time += dt
 
-        return {
-            "acquired": False,
-            "time_to_hit": np.inf,
-            "trajectory": traj,
-            "target": target
-        }
+        total_time = len(traj) * dt
+        return ExperimentResult(
+            target=target,
+            trajectory=traj,
+            hit=False,
+            time_to_hit=total_time,
+            total_time=total_time
+        )
+
 
 # ============================================================
-# 3. Sampler
+# 4. Sampler
 # ============================================================
+
 class Gaussian2DSampler:
     def __init__(self, mean, cov):
         self.mean = mean
@@ -137,8 +115,9 @@ class Gaussian2DSampler:
     def sample(self, rng):
         return rng.multivariate_normal(self.mean, self.cov)
 
+
 # ============================================================
-# 4. Engine
+# 5. Monte Carlo Engine
 # ============================================================
 
 class MonteCarloEngine:
@@ -147,36 +126,66 @@ class MonteCarloEngine:
         self.model = model
         self.rng = np.random.default_rng(seed)
 
-    def run_once(self):
-        target = self.sampler.sample(self.rng)
-        return self.model.run(target)
-
     def run(self, n):
-        return [self.run_once() for _ in range(n)]
-
-
+        return [
+            self.model.run(self.sampler.sample(self.rng))
+            for _ in range(n)
+        ]
 
 
 # ============================================================
-# 5. Analyzer
+# 6. Analyzer
 # ============================================================
+
 class AcquisitionAnalyzer:
     def __init__(self, results):
         self.results = results
 
     def probability_of_acquisition(self):
-        return np.mean([r["acquired"] for r in self.results])
+        return np.mean([r.hit for r in self.results])
 
     def acquisition_times(self):
-        return np.array([
-            r["time_to_hit"] for r in self.results
-            if r["acquired"]
-        ])
+        return np.array([r.time_to_hit for r in self.results])
+
+    def plot_spatial_map(self, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        for r in self.results:
+            color = 'green' if r.hit else 'red'
+            ax.scatter(r.target[0], r.target[1], c=color, alpha=0.3)
+
+        ax.set_aspect("equal")
+        ax.set_title("Spatial acquisition map")
+        ax.grid(True)
+        return ax
+
+    def plot_time_pdf_cdf(self, ax_pdf=None, ax_cdf=None, bins=30):
+        times = self.acquisition_times()
+
+        if ax_pdf is None or ax_cdf is None:
+            fig, (ax_pdf, ax_cdf) = plt.subplots(1, 2, figsize=(10, 4))
+
+        # PDF
+        ax_pdf.hist(times, bins=bins, density=True)
+        ax_pdf.set_title("PDF of acquisition time")
+        ax_pdf.set_xlabel("Time [s]")
+        ax_pdf.set_ylabel("Density")
+
+        # CDF
+        t_sorted = np.sort(times)
+        cdf = np.arange(1, len(times) + 1) / len(times)
+        ax_cdf.plot(t_sorted, cdf)
+        ax_cdf.set_title("CDF of acquisition time")
+        ax_cdf.set_xlabel("Time [s]")
+        ax_cdf.set_ylabel("Probability")
+
+        return ax_pdf, ax_cdf
 
 
 # ============================================================
-# Main Execution
-import matplotlib.pyplot as plt
+# 7. Main
+# ============================================================
 
 path = SpiralPath(
     spiral_step=0.05,
@@ -200,15 +209,24 @@ engine = MonteCarloEngine(
     seed=42
 )
 
-results = engine.run(100)
+results = engine.run(500)
 analyzer = AcquisitionAnalyzer(results)
 
 print("P(acquisition):", analyzer.probability_of_acquisition())
 
-# Plot one geometry
-r = results[0]
-plt.plot(r["trajectory"][:,0], r["trajectory"][:,1], 'k-')
-plt.scatter(*r["target"], c='red')
-plt.gca().set_aspect("equal")
-plt.grid()
+# ---- Composite plots
+fig = plt.figure(figsize=(12, 8))
+gs = fig.add_gridspec(2, 2)
+
+ax0 = fig.add_subplot(gs[0, 0])
+results[0].plot_geometry(ax0)
+
+ax1 = fig.add_subplot(gs[0, 1])
+analyzer.plot_spatial_map(ax1)
+
+ax2 = fig.add_subplot(gs[1, 0])
+ax3 = fig.add_subplot(gs[1, 1])
+analyzer.plot_time_pdf_cdf(ax2, ax3)
+
+plt.tight_layout()
 plt.show()
