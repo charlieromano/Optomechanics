@@ -1,8 +1,16 @@
 import numpy as np
-from MCParameter import Parameter
-from MCSampler import JointParameterSampler
-from MCEngine import MonteCarloSimulation
-from MCAnalyzer import ResultAnalyzer
+import matplotlib.pyplot as plt
+from abc import ABC, abstractmethod
+import numpy as np
+
+class Path(ABC):
+    @abstractmethod
+    def trajectory(self):
+        pass
+
+    @abstractmethod
+    def time_step(self):
+        pass
 
 # ============================================================
 # 1. Parameters
@@ -56,19 +64,6 @@ D_Tx_max = 0.8 # m
 # ============================================================
 # Define parameters using MCParameter
 
-target_position = Parameter(
-    name="target_position",
-    kind="distribution",
-    dist="Gaussian2D",
-    mean=[0.0, 0.0],
-    cov=[
-        [theta_FoU**2, 0.0],
-        [0.0, theta_FoU**2]
-    ],
-    units="rad",
-    description="Target position within field of uncertainty"
-)
-
 class ScanPatternModel:
     def __init__(self, speed, radius):
         self.speed = speed
@@ -82,35 +77,138 @@ class ScanPatternModel:
         time = length / self.speed
         return trajectory, time
     
+class SpiralPath(Path):
+    def __init__(self, spiral_step, max_radius, velocity):
+        self.spiral_step = spiral_step
+        self.max_radius = max_radius
+        self.velocity = velocity
+
+    def trajectory(self):
+        theta = 0.0
+        points = []
+
+        while True:
+            r = self.spiral_step * theta
+            if r > self.max_radius:
+                break
+            points.append([r*np.cos(theta), r*np.sin(theta)])
+            theta += self.spiral_step
+
+        return np.array(points)
+
+    def time_step(self):
+        return self.spiral_step / self.velocity
+
+class AcquisitionModel:
+    def __init__(self, path, hit_radius):
+        self.path = path
+        self.hit_radius = hit_radius
+
+    def run(self, target):
+        traj = self.path.trajectory()
+        dt = self.path.time_step()
+        time = 0.0
+
+        for p in traj:
+            if np.linalg.norm(p - target) <= self.hit_radius:
+                return {
+                    "acquired": True,
+                    "time_to_hit": time,
+                    "trajectory": traj,
+                    "target": target
+                }
+            time += dt
+
+        return {
+            "acquired": False,
+            "time_to_hit": np.inf,
+            "trajectory": traj,
+            "target": target
+        }
 
 # ============================================================
 # 3. Sampler
 # ============================================================
 class Gaussian2DSampler:
-    def __init__(self, mean, cov, n_points):
+    def __init__(self, mean, cov):
         self.mean = mean
         self.cov = cov
-        self.n_points = n_points
-    def sample(self):
-        return np.random.multivariate_normal(
-            self.mean,
-            self.cov,
-            self.n_points
-        )
 
+    def sample(self, rng):
+        return rng.multivariate_normal(self.mean, self.cov)
 
 # ============================================================
 # 4. Engine
 # ============================================================
-# Simulation sample size
-N = 100
-spiral_pattern = Parameter(
-    name="spiral_pattern",
-    kind="fixed",
-    value="Archimedean",
-    description="Type of spiral search pattern"
-)
+
+class MonteCarloEngine:
+    def __init__(self, sampler, model, seed=None):
+        self.sampler = sampler
+        self.model = model
+        self.rng = np.random.default_rng(seed)
+
+    def run_once(self):
+        target = self.sampler.sample(self.rng)
+        return self.model.run(target)
+
+    def run(self, n):
+        return [self.run_once() for _ in range(n)]
+
+
+
 
 # ============================================================
 # 5. Analyzer
 # ============================================================
+class AcquisitionAnalyzer:
+    def __init__(self, results):
+        self.results = results
+
+    def probability_of_acquisition(self):
+        return np.mean([r["acquired"] for r in self.results])
+
+    def acquisition_times(self):
+        return np.array([
+            r["time_to_hit"] for r in self.results
+            if r["acquired"]
+        ])
+
+
+# ============================================================
+# Main Execution
+import matplotlib.pyplot as plt
+
+path = SpiralPath(
+    spiral_step=0.05,
+    max_radius=3.0,
+    velocity=0.1
+)
+
+sampler = Gaussian2DSampler(
+    mean=[0, 0],
+    cov=[[1, 0], [0, 1]]
+)
+
+model = AcquisitionModel(
+    path=path,
+    hit_radius=0.2
+)
+
+engine = MonteCarloEngine(
+    sampler=sampler,
+    model=model,
+    seed=42
+)
+
+results = engine.run(100)
+analyzer = AcquisitionAnalyzer(results)
+
+print("P(acquisition):", analyzer.probability_of_acquisition())
+
+# Plot one geometry
+r = results[0]
+plt.plot(r["trajectory"][:,0], r["trajectory"][:,1], 'k-')
+plt.scatter(*r["target"], c='red')
+plt.gca().set_aspect("equal")
+plt.grid()
+plt.show()
