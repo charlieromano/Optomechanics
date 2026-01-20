@@ -2,11 +2,28 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+
 from dataclasses import dataclass
 
 # ============================================================
-# Experiment Result
+# Unit class
 # ============================================================
+class Unit:
+    def __init__(self, name):
+        self.name = name
+
+    def __eq__(self, other):
+        return isinstance(other, Unit) and self.name == other.name
+
+    def __repr__(self):
+        return self.name
+
+# Base units
+RAD = Unit("rad")
+SEC = Unit("s")
+WATT = Unit("W")
+JOULE = Unit("J")
+RAD_PER_SEC = Unit("rad/s")
 
 class ExperimentResult:
     def __init__(
@@ -103,23 +120,49 @@ class AcquisitionModel:
         self.errors = []
         self.warnings = []
 
+    def _get(self, params, name, expected_unit=None):
+        """
+        Accepts:
+          - value
+          - (value, unit)
+        """
+        v = params[name]
+
+        if isinstance(v, tuple):
+            value, unit = v
+            if expected_unit and unit != expected_unit:
+                self.errors.append(
+                    f"Parameter '{name}' must have unit {expected_unit}, got {unit}"
+                )
+            return value
+        else:
+            if expected_unit:
+                self.warnings.append(
+                    f"Parameter '{name}' has no unit, expected {expected_unit}"
+                )
+            return v
     # ----------------------------
     # Physics derivation
     # ----------------------------
     def _derive(self, p):
-        theta_fou = p["N_sigma"] * p["sigma_theta"]
-        spot_radius = p["theta_div"] / 2.0
-        dt = p["dwell_time"]
-        step_length = p["velocity"] * dt
-        energy_per_dwell = p["power"] * dt
+        sigma_theta = self._get(p, "sigma_theta", RAD)
+        theta_div = self._get(p, "theta_div", RAD)
+        N_sigma = self._get(p, "N_sigma")
+        overlap = self._get(p, "overlap_factor")
+        velocity = self._get(p, "velocity", RAD_PER_SEC)
+        dwell_time = self._get(p, "dwell_time", SEC)
+        power = self._get(p, "power", WATT)
 
-        spiral_a = (
-            p["theta_div"] * (1.0 - p["overlap_factor"])
-        ) / (2.0 * math.pi)
+        theta_fou = N_sigma * sigma_theta
+        spot_radius = theta_div / 2.0
+        step_length = velocity * dwell_time
+        energy_per_dwell = power * dwell_time
 
+        spiral_a = (theta_div * (1.0 - overlap)) / (2.0 * math.pi)
         theta_max = theta_fou / spiral_a
         num_turns = theta_max / (2.0 * math.pi)
-        irradiance = p["power"] / (math.pi * spot_radius**2)
+
+        irradiance = power / (math.pi * spot_radius**2)
 
         return AcquisitionDerived(
             spot_radius=spot_radius,
@@ -128,11 +171,10 @@ class AcquisitionModel:
             theta_max=theta_max,
             num_turns=num_turns,
             step_length=step_length,
-            dt=dt,
+            dt=dwell_time,
             energy_per_dwell=energy_per_dwell,
             irradiance=irradiance,
         )
-
     # ----------------------------
     # Validation
     # ----------------------------
@@ -140,22 +182,29 @@ class AcquisitionModel:
         self.errors.clear()
         self.warnings.clear()
 
-        if d.energy_per_dwell < p["energy_threshold"]:
+        # Energy threshold check
+        energy_threshold = self._get(p, "energy_threshold", JOULE)
+        if d.energy_per_dwell < energy_threshold:
             self.errors.append("Energy per dwell below threshold")
 
-        max_step = p["theta_div"] * (1.0 - p["overlap_factor"])
+        # Step length / along-path undersampling
+        theta_div = self._get(p, "theta_div", RAD)
+        overlap = self._get(p, "overlap_factor")
+        max_step = theta_div * (1.0 - overlap)
         if d.step_length > max_step:
             self.warnings.append("Along-path undersampling")
 
+        # Radial spacing check
         radial_spacing = 2.0 * math.pi * d.spiral_a
         if radial_spacing > max_step:
             self.warnings.append("Radial undersampling")
 
-        if p["N_sigma"] < 3.0:
+        # Target distribution coverage
+        N_sigma = self._get(p, "N_sigma")
+        if N_sigma < 3.0:
             self.warnings.append("Target distribution truncated")
 
         return len(self.errors) == 0
-
     # ----------------------------
     # Geometry
     # ----------------------------
