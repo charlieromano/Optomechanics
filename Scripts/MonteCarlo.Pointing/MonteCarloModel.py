@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 
 from dataclasses import dataclass
 
+try:
+    from numba import njit
+    NUMBA_AVAILABLE = True
+except ImportError:
+    NUMBA_AVAILABLE = False
+
 # ============================================================
 # Unit class
 # ============================================================
@@ -18,12 +24,13 @@ class Unit:
     def __repr__(self):
         return self.name
 
-# Base units
+
 RAD = Unit("rad")
 SEC = Unit("s")
 WATT = Unit("W")
 JOULE = Unit("J")
 RAD_PER_SEC = Unit("rad/s")
+
 
 class ExperimentResult:
     def __init__(
@@ -66,7 +73,7 @@ class ExperimentResult:
             warnings=warnings,
             valid=False,
         )
-    
+
     def plot_geometry(self, ax=None):
         if ax is None:
             fig, ax = plt.subplots()
@@ -90,10 +97,9 @@ class ExperimentResult:
             )
 
         ax.set_aspect("equal")
-        ax.set_xlabel("x [rad]")
-        ax.set_ylabel("y [rad]")
         ax.grid(True)
         return ax
+
 
 # ============================================================
 # Derived physics container
@@ -111,21 +117,54 @@ class AcquisitionDerived:
     energy_per_dwell: float
     irradiance: float
 
+
+# ============================================================
+# NUMBA KERNEL
+# ============================================================
+
+if NUMBA_AVAILABLE:
+    @njit
+    def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
+        time = 0.0
+        dwell_time = 0.0
+        energy = 0.0
+        hit = False
+        time_to_hit = np.nan
+        r2 = spot_radius * spot_radius
+
+        for i in range(traj.shape[0]):
+            dx = traj[i, 0] - target[0]
+            dy = traj[i, 1] - target[1]
+
+            if dx * dx + dy * dy <= r2:
+                if not hit:
+                    hit = True
+                    time_to_hit = time
+                dwell_time += dt
+                energy += energy_per_dwell
+
+            time += dt
+
+        return hit, time_to_hit, time, dwell_time, energy
+
+
 # ============================================================
 # Unified Acquisition Model
 # ============================================================
 
 class AcquisitionModel:
-    def __init__(self):
+    def __init__(self, backend="python"):
+        """
+        backend: "python" | "numba"
+        """
         self.errors = []
         self.warnings = []
+        self.backend = backend
+
+        if backend == "numba" and not NUMBA_AVAILABLE:
+            raise RuntimeError("Numba backend requested but Numba is not available")
 
     def _get(self, params, name, expected_unit=None):
-        """
-        Accepts:
-          - value
-          - (value, unit)
-        """
         v = params[name]
 
         if isinstance(v, tuple):
@@ -141,6 +180,7 @@ class AcquisitionModel:
                     f"Parameter '{name}' has no unit, expected {expected_unit}"
                 )
             return v
+
     # ----------------------------
     # Physics derivation
     # ----------------------------
@@ -175,6 +215,7 @@ class AcquisitionModel:
             energy_per_dwell=energy_per_dwell,
             irradiance=irradiance,
         )
+
     # ----------------------------
     # Validation
     # ----------------------------
@@ -182,29 +223,27 @@ class AcquisitionModel:
         self.errors.clear()
         self.warnings.clear()
 
-        # Energy threshold check
         energy_threshold = self._get(p, "energy_threshold", JOULE)
         if d.energy_per_dwell < energy_threshold:
             self.errors.append("Energy per dwell below threshold")
 
-        # Step length / along-path undersampling
         theta_div = self._get(p, "theta_div", RAD)
         overlap = self._get(p, "overlap_factor")
         max_step = theta_div * (1.0 - overlap)
+
         if d.step_length > max_step:
             self.warnings.append("Along-path undersampling")
 
-        # Radial spacing check
         radial_spacing = 2.0 * math.pi * d.spiral_a
         if radial_spacing > max_step:
             self.warnings.append("Radial undersampling")
 
-        # Target distribution coverage
         N_sigma = self._get(p, "N_sigma")
         if N_sigma < 3.0:
             self.warnings.append("Target distribution truncated")
 
         return len(self.errors) == 0
+
     # ----------------------------
     # Geometry
     # ----------------------------
@@ -215,9 +254,21 @@ class AcquisitionModel:
         return np.column_stack((r * np.cos(theta), r * np.sin(theta)))
 
     # ----------------------------
-    # Simulation core
+    # Simulation core (dispatcher)
     # ----------------------------
     def _simulate(self, traj, target, d):
+        if self.backend == "numba":
+            return _simulate_numba_kernel(
+                traj,
+                target,
+                d.dt,
+                d.spot_radius,
+                d.energy_per_dwell,
+            )
+        else:
+            return self._simulate_python(traj, target, d)
+
+    def _simulate_python(self, traj, target, d):
         time = 0.0
         dwell_time = 0.0
         energy = 0.0
@@ -265,4 +316,3 @@ class AcquisitionModel:
             warnings=self.warnings.copy(),
             valid=True,
         )
-# ============================================================
