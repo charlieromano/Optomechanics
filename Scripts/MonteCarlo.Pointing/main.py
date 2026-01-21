@@ -4,34 +4,36 @@ import matplotlib.pyplot as plt
 import importlib
 
 from MonteCarloEngine import MonteCarloEngine, DirectMonteCarlo
-from MonteCarloModel import AcquisitionModel
+from MonteCarloModel import AcquisitionModel, Unit
 from MonteCarloAnalyzer import AcquisitionAnalyzer
 from MonteCarloParameters import Parameter, ParameterSet
+
 
 # --------------------------------------------------
 # Monte Carlo Parameters
 # --------------------------------------------------
-
-sigma_theta = 4e-3
-theta_div = 300e-6
-N_sigma = 3.0
-overlap_factor = 0.05
+# Base units
+RAD = Unit("rad")
+SEC = Unit("s")
+WATT = Unit("W")
+JOULE = Unit("J")
+RAD_PER_SEC = Unit("rad/s")
 
 mc_params = ParameterSet([
-    Parameter("sigma_theta", kind="fixed", value=sigma_theta),
-    Parameter("theta_div", kind="fixed", value=theta_div),
-    Parameter("N_sigma", kind="fixed", value=N_sigma),
-    Parameter("overlap_factor", kind="fixed", value=overlap_factor),
-    Parameter("velocity", kind="fixed", value=0.02),
-    Parameter("dwell_time", kind="fixed", value=0.01),
-    Parameter("power", kind="fixed", value=10.0),
-    Parameter("energy_threshold", kind="fixed", value=1e-3),
+    Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
+    Parameter("theta_div", kind="fixed", value=(300e-6, RAD)),
+    Parameter("N_sigma", kind="fixed", value=3.0),
+    Parameter("overlap_factor", kind="fixed", value=0.1),
+    Parameter("velocity", kind="fixed", value=(0.25, RAD_PER_SEC)),
+    Parameter("dwell_time", kind="fixed", value=(100e-6, SEC)),
+    Parameter("power", kind="fixed", value=(31e-6, WATT)),
+    Parameter("energy_threshold", kind="fixed", value=(3.1e-12, JOULE)),
     Parameter(
         "target_position",
         kind="distribution",
         dist="Gaussian2D",
         mean=[0.0, 0.0],
-        cov=[[sigma_theta**2, 0.0], [0.0, sigma_theta**2]],
+        cov=[[4e-3**2, 0.0], [0.0, 4e-3**2]],
     ),
 ])
 
@@ -53,9 +55,25 @@ analyzer = AcquisitionAnalyzer(results)
 print("P(acquisition):", analyzer.probability_of_acquisition())
 
 # --------------------------------------------------
-# Plot
+# Plots
 # --------------------------------------------------
 
-fig, ax = plt.subplots()
-results[0].plot_geometry(ax)
+fig = plt.figure(figsize=(12, 8))
+gs = fig.add_gridspec(2, 2)
+
+ax0 = fig.add_subplot(gs[0, 0])
+results[0].plot_geometry(ax0)
+
+ax1 = fig.add_subplot(gs[0, 1])
+analyzer.plot_spatial_map(ax1)
+
+ax2 = fig.add_subplot(gs[1, 0])
+ax3 = fig.add_subplot(gs[1, 1])
+analyzer.plot_time_pdf_cdf(
+    ax2,
+    ax3,
+    probability_threshold=0.95  # default reliability requirement
+)
+plt.tight_layout()
 plt.show()
+# --------------------------------------------------
