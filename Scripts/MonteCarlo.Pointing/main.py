@@ -21,13 +21,13 @@ RAD_PER_SEC = Unit("rad/s")
 
 mc_params = ParameterSet([
     Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
-    Parameter("theta_div", kind="fixed", value=(300e-6, RAD)),
+    Parameter("theta_div", kind="fixed", value=(200e-6, RAD)),
     Parameter("N_sigma", kind="fixed", value=3.0),
-    Parameter("overlap_factor", kind="fixed", value=0.1),
-    Parameter("velocity", kind="fixed", value=(0.25, RAD_PER_SEC)),
-    Parameter("dwell_time", kind="fixed", value=(100e-6, SEC)),
-    Parameter("power", kind="fixed", value=(31e-6, WATT)),
-    Parameter("energy_threshold", kind="fixed", value=(3.1e-12, JOULE)),
+    Parameter("overlap_factor", kind="fixed", value=0.05),
+    Parameter("velocity", kind="fixed", value=(0.2, RAD_PER_SEC)),
+    Parameter("dwell_time", kind="fixed", value=(10e-6, SEC)),
+    Parameter("power", kind="fixed", value=(3e-6, WATT)),
+    Parameter("energy_threshold", kind="fixed", value=(100e-12, JOULE)),
     Parameter(
         "target_position",
         kind="distribution",
@@ -41,7 +41,11 @@ mc_params = ParameterSet([
 # Engine
 # --------------------------------------------------
 
-model = AcquisitionModel()
+N_MonteCarlo = 10
+
+#model = AcquisitionModel()
+#model = AcquisitionModel(backend="numba")
+model = AcquisitionModel(backend="hdf5")
 
 engine = MonteCarloEngine(
     model=model,
@@ -49,7 +53,9 @@ engine = MonteCarloEngine(
     seed=42,
 )
 
-results = engine.run(1)
+results = engine.run(N_MonteCarlo)
+model.close()
+
 
 analyzer = AcquisitionAnalyzer(results)
 print("P(acquisition):", analyzer.probability_of_acquisition())
@@ -57,7 +63,6 @@ print("P(acquisition):", analyzer.probability_of_acquisition())
 # --------------------------------------------------
 # Plots
 # --------------------------------------------------
-
 fig = plt.figure(figsize=(12, 8))
 gs = fig.add_gridspec(2, 2)
 
@@ -75,5 +80,52 @@ analyzer.plot_time_pdf_cdf(
     probability_threshold=0.95  # default reliability requirement
 )
 plt.tight_layout()
+#plt.show()
+
+def format_mc_parameters(param_set, n_simulations=None):
+    """Return a multiline string with parameter name, value and unit."""
+    lines = ["Monte Carlo parameters:"]
+
+    params = param_set.parameters
+
+    # Handle dict-based ParameterSet
+    if isinstance(params, dict):
+        iterable = params.items()
+    else:
+        iterable = [(p.name, p) for p in params]
+
+    for name, p in iterable:
+        if p.kind == "fixed":
+            val = p.value
+            if isinstance(val, tuple):
+                value, unit = val
+                lines.append(f"{name}: {value:g} {unit}")
+            else:
+                lines.append(f"{name}: {val}")
+        else:
+            lines.append(f"{name}: {p.dist}")
+
+    # Add number of simulations at the end
+    if n_simulations is not None:
+        lines.append(f"N_simulations: {n_simulations}")
+
+    return "\n".join(lines)
+
+param_text = format_mc_parameters(mc_params, n_simulations=N_MonteCarlo)
+
+fig.text(
+    0.5, 0.98,                  # center-top of figure
+    param_text,
+    fontsize=9,
+    va="top",
+    ha="center",
+    bbox=dict(
+        boxstyle="round",
+        facecolor="white",
+        alpha=0.85,
+        edgecolor="gray"
+    )
+)
+
 plt.show()
 # --------------------------------------------------

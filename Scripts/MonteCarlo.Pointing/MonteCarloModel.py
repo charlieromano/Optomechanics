@@ -2,6 +2,8 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import h5py
+import os
 
 from dataclasses import dataclass
 
@@ -153,17 +155,37 @@ if NUMBA_AVAILABLE:
 # ============================================================
 
 class AcquisitionModel:
-    def __init__(self, backend="python"):
+    def __init__(self, backend="python", *, hdf5_file="mc_results.h5"):
         """
-        backend: "python" | "numba"
+        backend: "python" | "numba" | "hdf5"
         """
         self.errors = []
         self.warnings = []
         self.backend = backend
+        self._reference_trajectory = None
+
+        self.hdf5_file = hdf5_file
+        self._h5 = None
+        self._run_index = 0
 
         if backend == "numba" and not NUMBA_AVAILABLE:
             raise RuntimeError("Numba backend requested but Numba is not available")
 
+        if backend == "hdf5":
+            self._init_hdf5()
+
+    def _init_hdf5(self):
+        # Open (or overwrite) the HDF5 file safely
+        self._h5 = h5py.File(self.hdf5_file, "w")  # "w" truncates the file if it exists
+        self._grp = self._h5.create_group("runs")
+
+        self._grp.create_dataset("hit", (0,), maxshape=(None,), dtype=np.bool_)
+        self._grp.create_dataset("time_to_hit", (0,), maxshape=(None,), dtype=np.float64)
+        self._grp.create_dataset("total_time", (0,), maxshape=(None,), dtype=np.float64)
+        self._grp.create_dataset("dwell_time", (0,), maxshape=(None,), dtype=np.float64)
+        self._grp.create_dataset("energy", (0,), maxshape=(None,), dtype=np.float64)
+        self._grp.create_dataset("target", (0, 2), maxshape=(None, 2), dtype=np.float64)
+    
     def _get(self, params, name, expected_unit=None):
         v = params[name]
 
@@ -180,7 +202,6 @@ class AcquisitionModel:
                     f"Parameter '{name}' has no unit, expected {expected_unit}"
                 )
             return v
-
     # ----------------------------
     # Physics derivation
     # ----------------------------
@@ -215,7 +236,6 @@ class AcquisitionModel:
             energy_per_dwell=energy_per_dwell,
             irradiance=irradiance,
         )
-
     # ----------------------------
     # Validation
     # ----------------------------
@@ -243,16 +263,48 @@ class AcquisitionModel:
             self.warnings.append("Target distribution truncated")
 
         return len(self.errors) == 0
-
     # ----------------------------
     # Geometry
     # ----------------------------
-    def _build_spiral(self, d):
+    def _spiral_angles(self, d):
         n = int(d.theta_max / d.spiral_a)
-        theta = np.linspace(0.0, d.theta_max, n)
+        return n, d.theta_max / max(n - 1, 1)
+
+    def _build_spiral(self, d):
+        n, dtheta = self._spiral_angles(d)
+        theta = np.arange(n) * dtheta
         r = d.spiral_a * theta
         return np.column_stack((r * np.cos(theta), r * np.sin(theta)))
 
+    def _spiral_generator(self, d):
+        n, dtheta = self._spiral_angles(d)
+        for i in range(n):
+            theta = i * dtheta
+            r = d.spiral_a * theta
+            yield r * math.cos(theta), r * math.sin(theta)
+
+    def _simulate_streaming(self, target, d):
+        time = 0.0
+        dwell_time = 0.0
+        energy = 0.0
+        hit = False
+        time_to_hit = np.nan
+        r2 = d.spot_radius * d.spot_radius
+
+        for x, y in self._spiral_generator(d):
+            dx = x - target[0]
+            dy = y - target[1]
+
+            if dx*dx + dy*dy <= r2:
+                if not hit:
+                    hit = True
+                    time_to_hit = time
+                dwell_time += d.dt
+                energy += d.energy_per_dwell
+
+            time += d.dt
+
+        return hit, time_to_hit, time, dwell_time, energy
     # ----------------------------
     # Simulation core (dispatcher)
     # ----------------------------
@@ -285,10 +337,15 @@ class AcquisitionModel:
             time += d.dt
 
         return hit, time_to_hit, time, dwell_time, energy
-
     # ----------------------------
     # Public API
     # ----------------------------
+    def close(self):
+        if self._h5 is not None:
+            self._h5.flush()
+            self._h5.close()
+            self._h5 = None
+
     def run(self, params):
         d = self._derive(params)
 
@@ -298,8 +355,48 @@ class AcquisitionModel:
                 warnings=self.warnings.copy(),
             )
 
-        traj = self._build_spiral(d)
+        if self.backend == "hdf5":
+            hit, t_hit, t_tot, dwell, energy = self._simulate_streaming(
+                params["target_position"], d
+            )
+            if self._reference_trajectory is None:
+                self._reference_trajectory = np.array(
+                    list(self._spiral_generator(d)),
+                    dtype=np.float32
+                )
+            i = self._run_index
+            self._run_index += 1
 
+            for name, value in [
+                ("hit", hit),
+                ("time_to_hit", t_hit),
+                ("total_time", t_tot),
+                ("dwell_time", dwell),
+                ("energy", energy),
+            ]:
+                ds = self._grp[name]
+                ds.resize((i + 1,))
+                ds[i] = value
+
+            ds = self._grp["target"]
+            ds.resize((i + 1, 2))
+            ds[i] = params["target_position"]
+
+        return ExperimentResult(
+            target=params["target_position"],
+            trajectory=self._reference_trajectory, 
+            hit=hit,
+            time_to_hit=t_hit,
+            total_time=t_tot,
+            dwell_time=dwell,
+            energy=energy,
+            physics=d,
+            warnings=self.warnings.copy(),
+            valid=True,
+        )
+
+        # ---- existing path ----
+        traj = self._build_spiral(d)
         hit, t_hit, t_tot, dwell, energy = self._simulate(
             traj, params["target_position"], d
         )
@@ -316,3 +413,4 @@ class AcquisitionModel:
             warnings=self.warnings.copy(),
             valid=True,
         )
+    # ----------------------------
