@@ -355,15 +355,22 @@ class AcquisitionModel:
                 warnings=self.warnings.copy(),
             )
 
+        # --------------------------------------------------
+        # Backend dispatch
+        # --------------------------------------------------
         if self.backend == "hdf5":
             hit, t_hit, t_tot, dwell, energy = self._simulate_streaming(
                 params["target_position"], d
             )
+
             if self._reference_trajectory is None:
                 self._reference_trajectory = np.array(
                     list(self._spiral_generator(d)),
                     dtype=np.float32
                 )
+
+            traj = self._reference_trajectory
+
             i = self._run_index
             self._run_index += 1
 
@@ -382,25 +389,16 @@ class AcquisitionModel:
             ds.resize((i + 1, 2))
             ds[i] = params["target_position"]
 
-        return ExperimentResult(
-            target=params["target_position"],
-            trajectory=self._reference_trajectory, 
-            hit=hit,
-            time_to_hit=t_hit,
-            total_time=t_tot,
-            dwell_time=dwell,
-            energy=energy,
-            physics=d,
-            warnings=self.warnings.copy(),
-            valid=True,
-        )
+        else:
+            # python / numba path
+            traj = self._build_spiral(d)
+            hit, t_hit, t_tot, dwell, energy = self._simulate(
+                traj, params["target_position"], d
+            )
 
-        # ---- existing path ----
-        traj = self._build_spiral(d)
-        hit, t_hit, t_tot, dwell, energy = self._simulate(
-            traj, params["target_position"], d
-        )
-
+        # --------------------------------------------------
+        # Unified return (all backends)
+        # --------------------------------------------------
         return ExperimentResult(
             target=params["target_position"],
             trajectory=traj,
@@ -413,4 +411,3 @@ class AcquisitionModel:
             warnings=self.warnings.copy(),
             valid=True,
         )
-    # ----------------------------

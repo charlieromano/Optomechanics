@@ -21,13 +21,13 @@ RAD_PER_SEC = Unit("rad/s")
 
 mc_params = ParameterSet([
     Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
-    Parameter("theta_div", kind="fixed", value=(200e-6, RAD)),
+    Parameter("theta_div", kind="fixed", value=(350e-6, RAD)),
     Parameter("N_sigma", kind="fixed", value=3.0),
     Parameter("overlap_factor", kind="fixed", value=0.05),
-    Parameter("velocity", kind="fixed", value=(0.2, RAD_PER_SEC)),
+    Parameter("velocity", kind="fixed", value=(0.15, RAD_PER_SEC)),
     Parameter("dwell_time", kind="fixed", value=(10e-6, SEC)),
-    Parameter("power", kind="fixed", value=(3e-6, WATT)),
-    Parameter("energy_threshold", kind="fixed", value=(100e-12, JOULE)),
+    Parameter("power", kind="fixed", value=(1e-6, WATT)),
+    Parameter("energy_threshold", kind="fixed", value=(100e-15, JOULE)),
     Parameter(
         "target_position",
         kind="distribution",
@@ -41,11 +41,11 @@ mc_params = ParameterSet([
 # Engine
 # --------------------------------------------------
 
-N_MonteCarlo = 10
+N_MonteCarlo = 1000
 
 #model = AcquisitionModel()
-#model = AcquisitionModel(backend="numba")
-model = AcquisitionModel(backend="hdf5")
+model = AcquisitionModel(backend="numba")
+#model = AcquisitionModel(backend="hdf5")
 
 engine = MonteCarloEngine(
     model=model,
