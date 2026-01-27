@@ -2,21 +2,16 @@
 import numpy as np
 
 class MonteCarloEngine:
-    def __init__(self, model, method, *, adapter=None, recorder=None, seed=None, progress=True):
-        """
-        model   : AcquisitionModel instance
-        method  : DirectMonteCarlo or InverseMonteCarlo instance
-        adapter : optional ResultAdapter
-        recorder: optional storage/writer object
-        seed    : RNG seed
-        progress: bool, print progress
-        """
+    def __init__(self, model, method, *, adapter=None, recorder=None, seed=None, progress=True, streaming=False):
         self.model = model
         self.method = method
         self.adapter = adapter
         self.recorder = recorder
         self.progress = progress
         self.rng = np.random.default_rng(seed)
+        # select backend if streaming requested
+        if streaming and hasattr(model, "_simulate_streaming"):
+            self.model.backend = "hdf5"
 
     def run(self, n):
         results = []

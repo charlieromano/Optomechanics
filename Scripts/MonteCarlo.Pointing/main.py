@@ -41,8 +41,7 @@ mc_params = ParameterSet([
 # --------------------------------------------------
 # ENGINE
 # --------------------------------------------------
-N_MonteCarlo = 10000
-
+N_MonteCarlo = 1000
 model = AcquisitionModel(backend="numba")
 engine = MonteCarloEngine(
     model=model,
@@ -51,7 +50,7 @@ engine = MonteCarloEngine(
     progress=True
 )
 
-
+# Run simulation
 results = engine.run(N_MonteCarlo)
 model.close()
 
@@ -59,47 +58,78 @@ analyzer = AcquisitionAnalyzer(results)
 print("P(acquisition):", analyzer.probability_of_acquisition())
 
 # --------------------------------------------------
+# Filter valid results for plotting
+# --------------------------------------------------
+valid_results = [
+    r for r in results
+    if getattr(r, 'trajectory', None) is not None
+    and getattr(r, 'physics', None) is not None
+    and getattr(r, 'target', None) is not None
+]
+
+# --------------------------------------------------
 # PLOTS
 # --------------------------------------------------
 fig = plt.figure(figsize=(16, 9))
 gs_main = fig.add_gridspec(2, 1, height_ratios=[1, 1.2], hspace=0.35)
 
-
+# -------------------
+# Top row: text, spiral, spatial map
+# -------------------
 gs_top = gs_main[0].subgridspec(1, 3, wspace=0.3)
 ax_text = fig.add_subplot(gs_top[0])
 ax_spiral = fig.add_subplot(gs_top[1])
 ax_spatial = fig.add_subplot(gs_top[2])
-
 ax_text.axis('off')
+
+# Parameter text
 AcquisitionAnalyzer.add_parameter_text(
-    fig, mc_params, n_simulations=N_MonteCarlo, x=0.15, y=0.9, fontsize=12
+    fig, mc_params, n_simulations=N_MonteCarlo, x=0.15, y=0.88, fontsize=12
 )
 
-traj = results[0].trajectory
-d = results[0].physics
+# -------------------
+# Spiral plot: path, mean hit, mean target
+# -------------------
+if valid_results:
+    # Use first valid trajectory for plotting
+    traj_plot = valid_results[0].trajectory
+    d = valid_results[0].physics
+    max_plot_points = 5000
+    if traj_plot.shape[0] > max_plot_points:
+        step = traj_plot.shape[0] // max_plot_points
+        traj_plot = traj_plot[::step]
+    ax_spiral.plot(traj_plot[:,0], traj_plot[:,1], color='black', linewidth=0.4, label="Spiral path")
 
-if traj is not None:
-    ax_spiral.plot(traj[:,0], traj[:,1], color='black', linewidth=0.4, label="Spiral path")
+    # Mean hit position (robust to partial results)
+    hits = np.array([r.first_hit_pos for r in valid_results if getattr(r, 'first_hit_pos', None) is not None])
+    mean_hit = np.mean(hits, axis=0) if hits.size > 0 else None
+    if mean_hit is not None:
+        ax_spiral.plot(mean_hit[0], mean_hit[1], 'go', markersize=6, label="Mean hit")
 
-# Mean hit
-mean_hit = analyzer.mean_hit_position()
-if mean_hit is not None:
-    ax_spiral.plot(mean_hit[0], mean_hit[1], 'go', markersize=6, label="Mean hit")
+    # Mean target spot
+    mean_target = np.mean([r.target for r in valid_results], axis=0)
+    circle = Circle(mean_target, d.spot_radius, color='blue', fill=False,
+                    linestyle='--', linewidth=1.2, label="Mean target")
+    ax_spiral.add_patch(circle)
 
-# Mean target spot
-mean_target = np.mean([r.target for r in results], axis=0)
-spot_radius = d.spot_radius
-circle = Circle(mean_target, spot_radius, color='blue', fill=False,
-                linestyle='--', linewidth=1.2, label="Mean target")
-ax_spiral.add_patch(circle)
-
-ax_spiral.set_title("Mean hit position", fontsize=12)
+ax_spiral.set_title("Spiral & Mean Hit", fontsize=12)
 ax_spiral.set_aspect("equal")
 ax_spiral.grid(True)
-ax_spiral.legend(fontsize=10)
+ax_spiral.legend(fontsize=10, loc='upper right')
 
-analyzer.plot_spatial_map(ax_spatial)
+# -------------------
+# Spatial hit/miss map
+# -------------------
+valid_hits = [r for r in valid_results if getattr(r, 'hit', False)]
+if valid_hits:
+    analyzer.plot_spatial_map(ax_spatial)
+else:
+    ax_spatial.text(0.5, 0.5, "No hits to display", ha='center', va='center')
+ax_spatial.legend(fontsize=10, loc='upper right')
 
+# -------------------
+# Bottom row: PDF and CDF
+# -------------------
 gs_bottom = gs_main[1].subgridspec(1, 2, wspace=0.3)
 ax_pdf = fig.add_subplot(gs_bottom[0])
 ax_cdf = fig.add_subplot(gs_bottom[1])
@@ -114,11 +144,12 @@ analyzer.plot_time_pdf_cdf(
     }
 )
 
-ax_spatial.legend(fontsize=10, loc='upper right')
-ax_spiral.legend(fontsize=10, loc='upper right')
 ax_pdf.legend(fontsize=10, loc='upper right')
 ax_cdf.legend(fontsize=10, loc='upper left')
 
+# -------------------
+# Layout adjustments
+# -------------------
 plt.tight_layout()
-fig.subplots_adjust(top=0.92)  # leave room for the text box
+fig.subplots_adjust(top=0.92)  # leave room for parameter text
 plt.show()

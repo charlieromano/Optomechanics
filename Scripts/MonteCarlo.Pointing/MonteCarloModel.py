@@ -1,116 +1,68 @@
 # MonteCarloModel.py
-import numpy as np
 import math
-import matplotlib.pyplot as plt
-import h5py
-from dataclasses import dataclass
+import numpy as np
+from numba import njit
 
 try:
-    from numba import njit
+    import numba
     NUMBA_AVAILABLE = True
 except ImportError:
     NUMBA_AVAILABLE = False
+import h5py
 
-
-# ---------------------------
-# Unit class
-# ---------------------------
+# MonteCarloModel.py or a separate utils.py
 class Unit:
+    """Simple wrapper for units (for display/validation purposes)."""
     def __init__(self, name):
         self.name = name
-    def __eq__(self, other):
-        return isinstance(other, Unit) and self.name == other.name
+
     def __repr__(self):
-        return self.name
+        return f"Unit({self.name!r})"
 
-
-RAD = Unit("rad")
-SEC = Unit("s")
-WATT = Unit("W")
-JOULE = Unit("J")
-RAD_PER_SEC = Unit("rad/s")
-
-
-# ---------------------------
-# ExperimentResult container
-# ---------------------------
-class ExperimentResult:
-    def __init__(self, *, valid=True, errors=None, warnings=None, **data):
-        self.valid = valid
-        self.errors = errors or []
-        self.warnings = warnings or []
-        self.data = data
-
-        # Direct attribute access
-        for k, v in data.items():
-            setattr(self, k, v)
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def keys(self):
-        return self.data.keys()
-
-    @classmethod
-    def invalid(cls, errors=None, warnings=None):
-        return cls(valid=False, errors=errors, warnings=warnings)
-
-
-# ---------------------------
-# Derived physics container
-# ---------------------------
-@dataclass
+# Auxiliary class for derived physics
 class AcquisitionDerived:
-    spot_radius: float
-    theta_fou: float
-    spiral_a: float
-    theta_max: float
-    num_turns: float
-    step_length: float
-    dt: float
-    energy_per_dwell: float
-    irradiance: float
+    def __init__(self, spot_radius, theta_fou, spiral_a, theta_max, num_turns,
+                 step_length, dt, energy_per_dwell, irradiance):
+        self.spot_radius = spot_radius
+        self.theta_fou = theta_fou
+        self.spiral_a = spiral_a
+        self.theta_max = theta_max
+        self.num_turns = num_turns
+        self.step_length = step_length
+        self.dt = dt
+        self.energy_per_dwell = energy_per_dwell
+        self.irradiance = irradiance
 
+# ExperimentResult stores outputs of a single run
+class ExperimentResult:
+    def __init__(self, hit, time_to_hit, total_time, dwell_time, energy,
+                 first_hit_pos=None, trajectory=None, physics=None, target=None):
+        self.hit = hit
+        self.time_to_hit = time_to_hit
+        self.total_time = total_time
+        self.dwell_time = dwell_time
+        self.energy = energy
+        self.first_hit_pos = first_hit_pos
+        self.trajectory = trajectory
+        self.physics = physics
+        self.target = target
 
-# ---------------------------
-# NUMBA kernel
-# ---------------------------
-if NUMBA_AVAILABLE:
-    @njit
-    def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
-        time = 0.0
-        dwell_time = 0.0
-        energy = 0.0
-        hit = False
-        time_to_hit = np.nan
-        r2 = spot_radius * spot_radius
+    @staticmethod
+    def invalid(errors=None, warnings=None):
+        return ExperimentResult(hit=False, time_to_hit=np.nan, total_time=0.0,
+                                dwell_time=0.0, energy=0.0,
+                                first_hit_pos=None, trajectory=None,
+                                physics=None, target=None)
 
-        for i in range(traj.shape[0]):
-            dx = traj[i, 0] - target[0]
-            dy = traj[i, 1] - target[1]
+# ----------------------------
 
-            if dx*dx + dy*dy <= r2:
-                if not hit:
-                    hit = True
-                    time_to_hit = time
-                dwell_time += dt
-                energy += energy_per_dwell
-
-            time += dt
-
-        return hit, time_to_hit, time, dwell_time, energy
-
-
-# ---------------------------
-# AcquisitionModel
-# ---------------------------
 class AcquisitionModel:
     def __init__(self, backend="python", *, hdf5_file="mc_results.h5"):
         self.errors = []
         self.warnings = []
         self.backend = backend
         self._reference_trajectory = None
-
+        self._last_d = None
         self.hdf5_file = hdf5_file
         self._h5 = None
         self._run_index = 0
@@ -123,7 +75,6 @@ class AcquisitionModel:
     def _init_hdf5(self):
         self._h5 = h5py.File(self.hdf5_file, "w")
         self._grp = self._h5.create_group("runs")
-
         self._grp.create_dataset("hit", (0,), maxshape=(None,), dtype=np.bool_)
         self._grp.create_dataset("time_to_hit", (0,), maxshape=(None,), dtype=np.float64)
         self._grp.create_dataset("total_time", (0,), maxshape=(None,), dtype=np.float64)
@@ -154,19 +105,18 @@ class AcquisitionModel:
     # Derive physics
     # ----------------------------
     def _derive(self, p):
-        sigma_theta = self._get(p, "sigma_theta", RAD)
-        theta_div = self._get(p, "theta_div", RAD)
+        sigma_theta = self._get(p, "sigma_theta")
+        theta_div = self._get(p, "theta_div")
         N_sigma = self._get(p, "N_sigma")
         overlap = self._get(p, "overlap_factor")
-        velocity = self._get(p, "velocity", RAD_PER_SEC)
-        dwell_time = self._get(p, "dwell_time", SEC)
-        power = self._get(p, "power", WATT)
+        velocity = self._get(p, "velocity")
+        dwell_time = self._get(p, "dwell_time")
+        power = self._get(p, "power")
 
         theta_fou = N_sigma * sigma_theta
         spot_radius = theta_div / 2.0
         step_length = velocity * dwell_time
         energy_per_dwell = power * dwell_time
-
         spiral_a = (theta_div * (1.0 - overlap)) / (2.0 * math.pi)
         theta_max = theta_fou / spiral_a
         num_turns = theta_max / (2.0 * math.pi)
@@ -181,7 +131,7 @@ class AcquisitionModel:
             step_length=step_length,
             dt=dwell_time,
             energy_per_dwell=energy_per_dwell,
-            irradiance=irradiance,
+            irradiance=irradiance
         )
 
     # ----------------------------
@@ -191,11 +141,11 @@ class AcquisitionModel:
         self.errors.clear()
         self.warnings.clear()
 
-        energy_threshold = self._get(p, "energy_threshold", JOULE)
+        energy_threshold = self._get(p, "energy_threshold")
         if d.energy_per_dwell < energy_threshold:
             self.errors.append("Energy per dwell below threshold")
 
-        theta_div = self._get(p, "theta_div", RAD)
+        theta_div = self._get(p, "theta_div")
         overlap = self._get(p, "overlap_factor")
         max_step = theta_div * (1.0 - overlap)
         if d.step_length > max_step:
@@ -214,93 +164,108 @@ class AcquisitionModel:
     # ----------------------------
     # Geometry
     # ----------------------------
-    def _spiral_angles(self, d):
-        n = int(d.theta_max / d.spiral_a)
-        return n, d.theta_max / max(n - 1, 1)
-
-    def _build_spiral(self, d):
-        n, dtheta = self._spiral_angles(d)
-        theta = np.arange(n) * dtheta
-        r = d.spiral_a * theta
-        return np.column_stack((r * np.cos(theta), r * np.sin(theta)))
-
     def _spiral_generator(self, d):
-        n, dtheta = self._spiral_angles(d)
+        n = int(d.theta_max / d.spiral_a)
+        dtheta = d.theta_max / max(n - 1, 1)
         for i in range(n):
             theta = i * dtheta
             r = d.spiral_a * theta
             yield r * math.cos(theta), r * math.sin(theta)
 
-    # ----------------------------
-    # Simulation core
-    # ----------------------------
-    def _simulate(self, traj, target, d):
-        if self.backend == "numba":
-            return _simulate_numba_kernel(
-                traj,
-                target,
-                d.dt,
-                d.spot_radius,
-                d.energy_per_dwell
-            )
-        else:
-            return self._simulate_python(traj, target, d)
+    def _build_spiral(self, d, max_points=None):
+        pts = np.array(list(self._spiral_generator(d)))
+        if max_points and len(pts) > max_points:
+            pts = pts[:: len(pts) // max_points]
+        return pts
+    @staticmethod
+    @njit
+    def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
+        time = 0.0
+        dwell = 0.0
+        energy = 0.0
+        hit = False
+        t_hit = np.nan
+        hit_index = -1
+        r2 = spot_radius**2
+        for idx in range(traj.shape[0]):
+            dx = traj[idx,0] - target[0]
+            dy = traj[idx,1] - target[1]
+            if dx*dx + dy*dy <= r2:
+                if not hit:
+                    hit = True
+                    t_hit = time
+                    hit_index = idx
+                dwell += dt
+                energy += energy_per_dwell
+            time += dt
+        return hit, t_hit, time, dwell, energy, hit_index
 
     def _simulate_python(self, traj, target, d):
         time = 0.0
         dwell_time = 0.0
         energy = 0.0
         hit = False
-        time_to_hit = np.nan
-
-        for p in traj:
-            if np.linalg.norm(p - target) <= d.spot_radius:
+        t_hit = np.nan
+        first_hit_pos = None
+        r2 = d.spot_radius**2
+        for x, y in traj:
+            dx, dy = x - target[0], y - target[1]
+            if dx*dx + dy*dy <= r2:
                 if not hit:
                     hit = True
-                    time_to_hit = time
+                    t_hit = time
+                    first_hit_pos = np.array([x, y])
                 dwell_time += d.dt
                 energy += d.energy_per_dwell
             time += d.dt
+        return hit, t_hit, time, dwell_time, energy, first_hit_pos
 
-        return hit, time_to_hit, time, dwell_time, energy
-
-    # ----------------------------
-    # Streaming simulation (for HDF5 / RAM control)
-    # ----------------------------
     def _simulate_streaming(self, target, d):
+        """Streaming simulation for HDF5 backend."""
         time = 0.0
-        dwell_time = 0.0
+        dwell = 0.0
         energy = 0.0
         hit = False
         time_to_hit = np.nan
-        r2 = d.spot_radius * d.spot_radius
+        first_hit_pos = None
+        r2 = d.spot_radius**2
 
         for x, y in self._spiral_generator(d):
             dx = x - target[0]
             dy = y - target[1]
-
             if dx*dx + dy*dy <= r2:
                 if not hit:
                     hit = True
                     time_to_hit = time
-                dwell_time += d.dt
+                    first_hit_pos = np.array([x, y])
+                dwell += d.dt
                 energy += d.energy_per_dwell
-
             time += d.dt
 
-        return hit, time_to_hit, time, dwell_time, energy
+        return hit, time_to_hit, time, dwell, energy, first_hit_pos
+
+    def _simulate(self, traj, target, d):
+        if self.backend == "numba":
+            hit, t_hit, t_tot, dwell, energy, hit_idx = AcquisitionModel._simulate_numba_kernel(
+                traj, target, d.dt, d.spot_radius, d.energy_per_dwell
+            )
+            first_hit_pos = traj[hit_idx].copy() if hit_idx >= 0 else None
+            return hit, t_hit, t_tot, dwell, energy, first_hit_pos
+
+        elif self.backend == "hdf5":
+            # HDF5 streaming generates its own trajectory internally
+            return self._simulate_streaming(target, d)
+
+        else:  # python backend
+            return self._simulate_python(traj, target, d)
+
 
     # ----------------------------
     # Public API
     # ----------------------------
-    def close(self):
-        if self._h5 is not None:
-            self._h5.flush()
-            self._h5.close()
-            self._h5 = None
-
     def run(self, params):
         d = self._derive(params)
+        self._last_d = d  # store for plotting/reference
 
         if not self._validate(params, d):
             return ExperimentResult.invalid(
@@ -308,43 +273,21 @@ class AcquisitionModel:
                 warnings=self.warnings.copy()
             )
 
-        # Backend dispatch
-        if self.backend == "hdf5":
-            hit, t_hit, t_tot, dwell, energy = self._simulate_streaming(
-                params["target_position"], d
-            )
-
+        # Build trajectory for Python / Numba backends
+        traj = None
+        if self.backend != "hdf5":
+            traj = self._build_spiral(d)
+        else:
+            # Ensure reference trajectory exists for HDF5
             if self._reference_trajectory is None:
                 self._reference_trajectory = np.array(
-                    list(self._spiral_generator(d)),
-                    dtype=np.float32
+                    list(self._spiral_generator(d)), dtype=np.float32
                 )
 
-            traj = self._reference_trajectory
-
-            i = self._run_index
-            self._run_index += 1
-
-            for name, value in [
-                ("hit", hit),
-                ("time_to_hit", t_hit),
-                ("total_time", t_tot),
-                ("dwell_time", dwell),
-                ("energy", energy)
-            ]:
-                ds = self._grp[name]
-                ds.resize((i + 1,))
-                ds[i] = value
-
-            ds = self._grp["target"]
-            ds.resize((i + 1, 2))
-            ds[i] = params["target_position"]
-
-        else:
-            traj = self._build_spiral(d)
-            hit, t_hit, t_tot, dwell, energy = self._simulate(
-                traj, params["target_position"], d
-            )
+        # Dispatch simulation
+        hit, t_hit, t_tot, dwell, energy, first_hit_pos = self._simulate(
+            traj, params["target_position"], d
+        )
 
         return ExperimentResult(
             hit=hit,
@@ -352,9 +295,19 @@ class AcquisitionModel:
             total_time=t_tot,
             dwell_time=dwell,
             energy=energy,
-            target=params["target_position"],
-            trajectory=traj,
+            first_hit_pos=first_hit_pos,
+            trajectory=traj if traj is not None else None,
             physics=d,
-            warnings=self.warnings.copy(),
-            valid=True
+            target=params["target_position"]
         )
+
+
+    # ----------------------------
+    def close(self):
+        if self._h5 is not None:
+            self._h5.flush()
+            self._h5.close()
+            self._h5 = None
+
+    def get_last_physics(self):
+        return self._reference_trajectory, getattr(self, "_last_d", None)
