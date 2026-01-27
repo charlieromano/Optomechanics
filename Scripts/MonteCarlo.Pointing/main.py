@@ -1,24 +1,25 @@
 # main.py
 import numpy as np
 import matplotlib.pyplot as plt
-import importlib
+from matplotlib.patches import Circle
 
 from MonteCarloEngine import MonteCarloEngine, DirectMonteCarlo
 from MonteCarloModel import AcquisitionModel, Unit
 from MonteCarloAnalyzer import AcquisitionAnalyzer
 from MonteCarloParameters import Parameter, ParameterSet
 
-
 # --------------------------------------------------
-# Monte Carlo Parameters
+# Units
 # --------------------------------------------------
-# Base units
 RAD = Unit("rad")
 SEC = Unit("s")
 WATT = Unit("W")
 JOULE = Unit("J")
 RAD_PER_SEC = Unit("rad/s")
 
+# --------------------------------------------------
+# Monte Carlo Parameters
+# --------------------------------------------------
 mc_params = ParameterSet([
     Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
     Parameter("theta_div", kind="fixed", value=(350e-6, RAD)),
@@ -38,94 +39,86 @@ mc_params = ParameterSet([
 ])
 
 # --------------------------------------------------
-# Engine
+# ENGINE
 # --------------------------------------------------
+N_MonteCarlo = 10000
 
-N_MonteCarlo = 1000
-
-#model = AcquisitionModel()
 model = AcquisitionModel(backend="numba")
-#model = AcquisitionModel(backend="hdf5")
-
 engine = MonteCarloEngine(
     model=model,
     method=DirectMonteCarlo(mc_params),
     seed=42,
+    progress=True
 )
+
 
 results = engine.run(N_MonteCarlo)
 model.close()
-
 
 analyzer = AcquisitionAnalyzer(results)
 print("P(acquisition):", analyzer.probability_of_acquisition())
 
 # --------------------------------------------------
-# Plots
+# PLOTS
 # --------------------------------------------------
-fig = plt.figure(figsize=(12, 8))
-gs = fig.add_gridspec(2, 2)
+fig = plt.figure(figsize=(16, 9))
+gs_main = fig.add_gridspec(2, 1, height_ratios=[1, 1.2], hspace=0.35)
 
-ax0 = fig.add_subplot(gs[0, 0])
-results[0].plot_geometry(ax0)
 
-ax1 = fig.add_subplot(gs[0, 1])
-analyzer.plot_spatial_map(ax1)
+gs_top = gs_main[0].subgridspec(1, 3, wspace=0.3)
+ax_text = fig.add_subplot(gs_top[0])
+ax_spiral = fig.add_subplot(gs_top[1])
+ax_spatial = fig.add_subplot(gs_top[2])
 
-ax2 = fig.add_subplot(gs[1, 0])
-ax3 = fig.add_subplot(gs[1, 1])
+ax_text.axis('off')
+AcquisitionAnalyzer.add_parameter_text(
+    fig, mc_params, n_simulations=N_MonteCarlo, x=0.15, y=0.9, fontsize=12
+)
+
+traj = results[0].trajectory
+d = results[0].physics
+
+if traj is not None:
+    ax_spiral.plot(traj[:,0], traj[:,1], color='black', linewidth=0.4, label="Spiral path")
+
+# Mean hit
+mean_hit = analyzer.mean_hit_position()
+if mean_hit is not None:
+    ax_spiral.plot(mean_hit[0], mean_hit[1], 'go', markersize=6, label="Mean hit")
+
+# Mean target spot
+mean_target = np.mean([r.target for r in results], axis=0)
+spot_radius = d.spot_radius
+circle = Circle(mean_target, spot_radius, color='blue', fill=False,
+                linestyle='--', linewidth=1.2, label="Mean target")
+ax_spiral.add_patch(circle)
+
+ax_spiral.set_title("Mean hit position", fontsize=12)
+ax_spiral.set_aspect("equal")
+ax_spiral.grid(True)
+ax_spiral.legend(fontsize=10)
+
+analyzer.plot_spatial_map(ax_spatial)
+
+gs_bottom = gs_main[1].subgridspec(1, 2, wspace=0.3)
+ax_pdf = fig.add_subplot(gs_bottom[0])
+ax_cdf = fig.add_subplot(gs_bottom[1])
+
 analyzer.plot_time_pdf_cdf(
-    ax2,
-    ax3,
-    probability_threshold=0.95  # default reliability requirement
+    ax_pdf=ax_pdf,
+    ax_cdf=ax_cdf,
+    show_percentiles=[0.95, 0.99],
+    percentile_line_styles={
+        0.95: ('red', 'dashed'),
+        0.99: ('red', 'dotted')
+    }
 )
+
+ax_spatial.legend(fontsize=10, loc='upper right')
+ax_spiral.legend(fontsize=10, loc='upper right')
+ax_pdf.legend(fontsize=10, loc='upper right')
+ax_cdf.legend(fontsize=10, loc='upper left')
+
 plt.tight_layout()
-#plt.show()
-
-def format_mc_parameters(param_set, n_simulations=None):
-    """Return a multiline string with parameter name, value and unit."""
-    lines = ["Monte Carlo parameters:"]
-
-    params = param_set.parameters
-
-    # Handle dict-based ParameterSet
-    if isinstance(params, dict):
-        iterable = params.items()
-    else:
-        iterable = [(p.name, p) for p in params]
-
-    for name, p in iterable:
-        if p.kind == "fixed":
-            val = p.value
-            if isinstance(val, tuple):
-                value, unit = val
-                lines.append(f"{name}: {value:g} {unit}")
-            else:
-                lines.append(f"{name}: {val}")
-        else:
-            lines.append(f"{name}: {p.dist}")
-
-    # Add number of simulations at the end
-    if n_simulations is not None:
-        lines.append(f"N_simulations: {n_simulations}")
-
-    return "\n".join(lines)
-
-param_text = format_mc_parameters(mc_params, n_simulations=N_MonteCarlo)
-
-fig.text(
-    0.5, 0.98,                  # center-top of figure
-    param_text,
-    fontsize=9,
-    va="top",
-    ha="center",
-    bbox=dict(
-        boxstyle="round",
-        facecolor="white",
-        alpha=0.85,
-        edgecolor="gray"
-    )
-)
-
+fig.subplots_adjust(top=0.92)  # leave room for the text box
 plt.show()
-# --------------------------------------------------

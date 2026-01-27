@@ -3,8 +3,6 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import h5py
-import os
-
 from dataclasses import dataclass
 
 try:
@@ -13,16 +11,15 @@ try:
 except ImportError:
     NUMBA_AVAILABLE = False
 
-# ============================================================
+
+# ---------------------------
 # Unit class
-# ============================================================
+# ---------------------------
 class Unit:
     def __init__(self, name):
         self.name = name
-
     def __eq__(self, other):
         return isinstance(other, Unit) and self.name == other.name
-
     def __repr__(self):
         return self.name
 
@@ -34,79 +31,34 @@ JOULE = Unit("J")
 RAD_PER_SEC = Unit("rad/s")
 
 
+# ---------------------------
+# ExperimentResult container
+# ---------------------------
 class ExperimentResult:
-    def __init__(
-        self,
-        target,
-        trajectory,
-        hit,
-        time_to_hit,
-        total_time,
-        dwell_time,
-        energy,
-        physics=None,
-        warnings=None,
-        errors=None,
-        valid=True,
-    ):
-        self.target = target
-        self.trajectory = trajectory
-        self.hit = hit
-        self.time_to_hit = time_to_hit
-        self.total_time = total_time
-        self.dwell_time = dwell_time
-        self.energy = energy
-        self.physics = physics
-        self.warnings = warnings or []
-        self.errors = errors or []
+    def __init__(self, *, valid=True, errors=None, warnings=None, **data):
         self.valid = valid
+        self.errors = errors or []
+        self.warnings = warnings or []
+        self.data = data
+
+        # Direct attribute access
+        for k, v in data.items():
+            setattr(self, k, v)
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def keys(self):
+        return self.data.keys()
 
     @classmethod
-    def invalid(cls, errors, warnings):
-        return cls(
-            target=None,
-            trajectory=None,
-            hit=False,
-            time_to_hit=np.nan,
-            total_time=0.0,
-            dwell_time=0.0,
-            energy=0.0,
-            errors=errors,
-            warnings=warnings,
-            valid=False,
-        )
-
-    def plot_geometry(self, ax=None):
-        if ax is None:
-            fig, ax = plt.subplots()
-
-        if self.trajectory is not None:
-            ax.plot(
-                self.trajectory[:, 0],
-                self.trajectory[:, 1],
-                "k-",
-                lw=1,
-            )
-
-        if self.target is not None:
-            color = "green" if self.hit else "red"
-            ax.scatter(
-                self.target[0],
-                self.target[1],
-                c=color,
-                s=60,
-                zorder=3,
-            )
-
-        ax.set_aspect("equal")
-        ax.grid(True)
-        return ax
+    def invalid(cls, errors=None, warnings=None):
+        return cls(valid=False, errors=errors, warnings=warnings)
 
 
-# ============================================================
+# ---------------------------
 # Derived physics container
-# ============================================================
-
+# ---------------------------
 @dataclass
 class AcquisitionDerived:
     spot_radius: float
@@ -120,10 +72,9 @@ class AcquisitionDerived:
     irradiance: float
 
 
-# ============================================================
-# NUMBA KERNEL
-# ============================================================
-
+# ---------------------------
+# NUMBA kernel
+# ---------------------------
 if NUMBA_AVAILABLE:
     @njit
     def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
@@ -138,7 +89,7 @@ if NUMBA_AVAILABLE:
             dx = traj[i, 0] - target[0]
             dy = traj[i, 1] - target[1]
 
-            if dx * dx + dy * dy <= r2:
+            if dx*dx + dy*dy <= r2:
                 if not hit:
                     hit = True
                     time_to_hit = time
@@ -150,15 +101,11 @@ if NUMBA_AVAILABLE:
         return hit, time_to_hit, time, dwell_time, energy
 
 
-# ============================================================
-# Unified Acquisition Model
-# ============================================================
-
+# ---------------------------
+# AcquisitionModel
+# ---------------------------
 class AcquisitionModel:
     def __init__(self, backend="python", *, hdf5_file="mc_results.h5"):
-        """
-        backend: "python" | "numba" | "hdf5"
-        """
         self.errors = []
         self.warnings = []
         self.backend = backend
@@ -170,13 +117,11 @@ class AcquisitionModel:
 
         if backend == "numba" and not NUMBA_AVAILABLE:
             raise RuntimeError("Numba backend requested but Numba is not available")
-
         if backend == "hdf5":
             self._init_hdf5()
 
     def _init_hdf5(self):
-        # Open (or overwrite) the HDF5 file safely
-        self._h5 = h5py.File(self.hdf5_file, "w")  # "w" truncates the file if it exists
+        self._h5 = h5py.File(self.hdf5_file, "w")
         self._grp = self._h5.create_group("runs")
 
         self._grp.create_dataset("hit", (0,), maxshape=(None,), dtype=np.bool_)
@@ -184,11 +129,13 @@ class AcquisitionModel:
         self._grp.create_dataset("total_time", (0,), maxshape=(None,), dtype=np.float64)
         self._grp.create_dataset("dwell_time", (0,), maxshape=(None,), dtype=np.float64)
         self._grp.create_dataset("energy", (0,), maxshape=(None,), dtype=np.float64)
-        self._grp.create_dataset("target", (0, 2), maxshape=(None, 2), dtype=np.float64)
-    
+        self._grp.create_dataset("target", (0,2), maxshape=(None,2), dtype=np.float64)
+
+    # ----------------------------
+    # Parameter getter
+    # ----------------------------
     def _get(self, params, name, expected_unit=None):
         v = params[name]
-
         if isinstance(v, tuple):
             value, unit = v
             if expected_unit and unit != expected_unit:
@@ -202,8 +149,9 @@ class AcquisitionModel:
                     f"Parameter '{name}' has no unit, expected {expected_unit}"
                 )
             return v
+
     # ----------------------------
-    # Physics derivation
+    # Derive physics
     # ----------------------------
     def _derive(self, p):
         sigma_theta = self._get(p, "sigma_theta", RAD)
@@ -222,7 +170,6 @@ class AcquisitionModel:
         spiral_a = (theta_div * (1.0 - overlap)) / (2.0 * math.pi)
         theta_max = theta_fou / spiral_a
         num_turns = theta_max / (2.0 * math.pi)
-
         irradiance = power / (math.pi * spot_radius**2)
 
         return AcquisitionDerived(
@@ -236,8 +183,9 @@ class AcquisitionModel:
             energy_per_dwell=energy_per_dwell,
             irradiance=irradiance,
         )
+
     # ----------------------------
-    # Validation
+    # Validate physics
     # ----------------------------
     def _validate(self, p, d):
         self.errors.clear()
@@ -250,7 +198,6 @@ class AcquisitionModel:
         theta_div = self._get(p, "theta_div", RAD)
         overlap = self._get(p, "overlap_factor")
         max_step = theta_div * (1.0 - overlap)
-
         if d.step_length > max_step:
             self.warnings.append("Along-path undersampling")
 
@@ -263,6 +210,7 @@ class AcquisitionModel:
             self.warnings.append("Target distribution truncated")
 
         return len(self.errors) == 0
+
     # ----------------------------
     # Geometry
     # ----------------------------
@@ -283,6 +231,42 @@ class AcquisitionModel:
             r = d.spiral_a * theta
             yield r * math.cos(theta), r * math.sin(theta)
 
+    # ----------------------------
+    # Simulation core
+    # ----------------------------
+    def _simulate(self, traj, target, d):
+        if self.backend == "numba":
+            return _simulate_numba_kernel(
+                traj,
+                target,
+                d.dt,
+                d.spot_radius,
+                d.energy_per_dwell
+            )
+        else:
+            return self._simulate_python(traj, target, d)
+
+    def _simulate_python(self, traj, target, d):
+        time = 0.0
+        dwell_time = 0.0
+        energy = 0.0
+        hit = False
+        time_to_hit = np.nan
+
+        for p in traj:
+            if np.linalg.norm(p - target) <= d.spot_radius:
+                if not hit:
+                    hit = True
+                    time_to_hit = time
+                dwell_time += d.dt
+                energy += d.energy_per_dwell
+            time += d.dt
+
+        return hit, time_to_hit, time, dwell_time, energy
+
+    # ----------------------------
+    # Streaming simulation (for HDF5 / RAM control)
+    # ----------------------------
     def _simulate_streaming(self, target, d):
         time = 0.0
         dwell_time = 0.0
@@ -305,38 +289,7 @@ class AcquisitionModel:
             time += d.dt
 
         return hit, time_to_hit, time, dwell_time, energy
-    # ----------------------------
-    # Simulation core (dispatcher)
-    # ----------------------------
-    def _simulate(self, traj, target, d):
-        if self.backend == "numba":
-            return _simulate_numba_kernel(
-                traj,
-                target,
-                d.dt,
-                d.spot_radius,
-                d.energy_per_dwell,
-            )
-        else:
-            return self._simulate_python(traj, target, d)
 
-    def _simulate_python(self, traj, target, d):
-        time = 0.0
-        dwell_time = 0.0
-        energy = 0.0
-        hit = False
-        time_to_hit = np.nan
-
-        for p in traj:
-            if np.linalg.norm(p - target) <= d.spot_radius:
-                if not hit:
-                    hit = True
-                    time_to_hit = time
-                dwell_time += d.dt
-                energy += d.energy_per_dwell
-            time += d.dt
-
-        return hit, time_to_hit, time, dwell_time, energy
     # ----------------------------
     # Public API
     # ----------------------------
@@ -352,12 +305,10 @@ class AcquisitionModel:
         if not self._validate(params, d):
             return ExperimentResult.invalid(
                 errors=self.errors.copy(),
-                warnings=self.warnings.copy(),
+                warnings=self.warnings.copy()
             )
 
-        # --------------------------------------------------
         # Backend dispatch
-        # --------------------------------------------------
         if self.backend == "hdf5":
             hit, t_hit, t_tot, dwell, energy = self._simulate_streaming(
                 params["target_position"], d
@@ -379,7 +330,7 @@ class AcquisitionModel:
                 ("time_to_hit", t_hit),
                 ("total_time", t_tot),
                 ("dwell_time", dwell),
-                ("energy", energy),
+                ("energy", energy)
             ]:
                 ds = self._grp[name]
                 ds.resize((i + 1,))
@@ -390,24 +341,20 @@ class AcquisitionModel:
             ds[i] = params["target_position"]
 
         else:
-            # python / numba path
             traj = self._build_spiral(d)
             hit, t_hit, t_tot, dwell, energy = self._simulate(
                 traj, params["target_position"], d
             )
 
-        # --------------------------------------------------
-        # Unified return (all backends)
-        # --------------------------------------------------
         return ExperimentResult(
-            target=params["target_position"],
-            trajectory=traj,
             hit=hit,
             time_to_hit=t_hit,
             total_time=t_tot,
             dwell_time=dwell,
             energy=energy,
+            target=params["target_position"],
+            trajectory=traj,
             physics=d,
             warnings=self.warnings.copy(),
-            valid=True,
+            valid=True
         )
