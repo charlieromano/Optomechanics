@@ -22,11 +22,11 @@ RAD_PER_SEC = Unit("rad/s")
 # --------------------------------------------------
 mc_params = ParameterSet([
     Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
-    Parameter("theta_div", kind="fixed", value=(350e-6, RAD)),
+    Parameter("theta_div", kind="fixed", value=(1.2e-3, RAD)),
     Parameter("N_sigma", kind="fixed", value=3.0),
-    Parameter("overlap_factor", kind="fixed", value=0.05),
-    Parameter("velocity", kind="fixed", value=(0.15, RAD_PER_SEC)),
-    Parameter("dwell_time", kind="fixed", value=(10e-6, SEC)),
+    Parameter("overlap_factor", kind="fixed", value=0.01),
+    Parameter("velocity", kind="fixed", value=(0.1, RAD_PER_SEC)),
+    Parameter("dwell_time", kind="fixed", value=(150e-6, SEC)),
     Parameter("power", kind="fixed", value=(1e-6, WATT)),
     Parameter("energy_threshold", kind="fixed", value=(100e-15, JOULE)),
     Parameter(
@@ -37,6 +37,7 @@ mc_params = ParameterSet([
         cov=[[4e-3**2, 0.0], [0.0, 4e-3**2]],
     ),
 ])
+
 
 # --------------------------------------------------
 # ENGINE
