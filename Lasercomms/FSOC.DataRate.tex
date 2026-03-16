@@ -1,0 +1,440 @@
+\documentclass[a4paper]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[top=1.25in, bottom=1.25in, left=1in, right=1in]{geometry}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+\makeindex
+
+\begin{document}
+\begin{center}
+\large{Free Space Optical Communications and DataComm calculations.}\\
+\small{Eng. Carlos German Carreño Romano}\\
+\end{center}
+\tableofcontents
+\pagebreak
+
+\section{Laser beam propagation}
+Most of the equations according to Andrew-Phillips book.
+
+\begin{center}
+\includegraphics[scale=0.4]{pics/gaussianBeam}
+\end{center}
+In the plot, $W_r(z_r)$ belongs to beam width at Rayleigh distance $z_r$, $W_0$ to the beam waist and $W(z)$ to the beam width at any distance $z$, and $\theta$ the beam divergence. \\
+
+\subsection{Divergence}
+\begin{align*}
+\theta &= \frac{\lambda}{\pi W_0}
+\end{align*}
+
+\subsection{Spot size}
+With $W_0=w_0$, the beam spot size is given by:\\
+\begin{align*}
+w(z) &\approx w_0 + z\theta
+\end{align*}
+\\with differs from beam diameter, which is $2w(z)$ using this convention referred to the graphic.
+
+
+\subsection{Field of View (FOV)}
+\begin{align*}
+\textrm{FOV} &= 2\alpha = 2\tan^{-1}\left(\frac{d}{2f}\right) \approx \frac{d}{f}
+\end{align*}
+
+\subsection{Gaussian beam}
+\begin{align*}
+U_0(r,0) = \exp\left(-\frac{r^2}{W_0^2}-\frac{ikr^2}{2F_0}\right)
+\end{align*}
+\begin{align*}
+U_0(r,L) = \frac{1}{p(L)}\exp(ikL)\exp\left(-\frac{r^2}{W_0^2}-\frac{ikr^2}{2F_0}\right)
+\end{align*}
+\begin{align*}
+p(L) &= 1 - \frac{L}{F_0}+i\frac{2L}{kW_0^2}
+\end{align*}
+\subsubsection{Gaussian beam parameters}
+\begin{align*}
+\Theta_0 &= 1-\frac{L}{F_0} \\
+\\
+\Lambda_0 &= \frac{2L}{kW_0^2}  \\
+\end{align*}
+
+\subsubsection{Gaussian Beam width}
+\begin{align*}
+W &= W_0\sqrt{\Theta_0^2+\Lambda_0^2} \\
+\end{align*}
+\subsubsection{Beam width at FWHM and $1/e^2$}
+\begin{align*}
+W_{\rm{1/e^2}} &= \frac{W_{\rm{FWHM}}}{\sqrt{2\ln 2}} \\
+\end{align*}
+\subsubsection{Divergence at FWHM and $1/e^2$}
+\begin{align*}
+\theta_{\rm{1/e^2}} &= \frac{2\lambda}{\pi W_0(0)} \\
+\\
+\theta_{\rm{FWHM}} &= \sqrt{\frac{\ln 2}{2}}\cdot \theta_{\rm{1/e^2}} \\
+\end{align*}
+
+\subsubsection{Irradiance on-axis}
+\begin{align*}
+I(0,L) &= I_0\cdot \frac{W_0^2}{W^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right] \\
+\end{align*}
+\section{Link budget}
+
+\begin{center}
+\begin{table}[]
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+        & Component               & Symbol    & Downlink & Uplink & Unit \\ \hline
+Tx      & Mean power              & $P_{Tx}$  &          &        & dB   \\
+        & Gain                    & $G_{Tx}$  &          &        & dB   \\
+        & Transmission loss       & $L_{Tx}$  &          &        & dB   \\
+        & Pointing loss           & $L_{PEB}$ &          &        & dB   \\ \hline
+Channel & Range loss              &           &          &        & dB   \\
+        & Atmospheric attenuation & $L_{atm}$ &          &        & dB   \\
+        & Scintillation loss      & $L_{sci}$ &          &        & dB   \\ \hline
+Rx      & Gain                    & $G_{Rx}$  &          &        & dB   \\
+        & Reception loss          & $L_{Rx}$  &          &        & dB   \\
+        & Splitting loss          &           &          &        & dB   \\ \hline
+Budget  & Power at detector       & $P_{Rx}$  &          &        & dB   \\
+        & Required power          &           &          &        & dB   \\ \hline
+        & Link margin             &           &          &        & dB   \\ \hline
+\end{tabular}
+\end{table}
+\end{center}
+
+\subsection{Power at the receiver}
+\begin{align*}
+P_{R_x} &= P_{T_x}\cdot \left(1-e^\frac{-2r^2}{W^2}\right) [\textrm{W}]
+\end{align*}
+
+\subsection{Irradiance at the receiver}
+\begin{align*}
+I_{R_x} &= 4\frac{P_{R_x}}{\pi D_{R_x}^2} \left[ \frac{\textrm{W}}{\textrm{m}^2} \right]
+\end{align*}
+
+\section{Atmospheric channel effects}
+\subsection{Kolmogorov outer scale and inner scale}
+Inertial range:\\
+
+\begin{align*}
+D_{RR}(R) &= \left\langle (V_1 - V_2)^2\right\rangle = C_V^2R^{2/3}
+\end{align*}
+
+\begin{equation*}
+D_{RR}(R)  = \left\{
+\begin{array}{ll}
+	C_v^2 \ell_0^{-4/3}R^2  & ,\ 0<R<<\ell_0\\
+	\\
+	C_v^2 R^{2/3}  & ,\ \ell_0<<R<<L_0
+\end{array} 
+\right .
+\end{equation*}
+
+\begin{center}
+\includegraphics[scale=0.5]{pics/KolmogorovLargeScaleSmallScale.png}
+\end{center}
+
+
+\subsection{Extended Rytov theory}
+The received irradiance of an optical wave can be modeled as a modulation process in which small-scale (diffractive) fluctuations are multiplicatively modulated by statistically independent large-scale (refractive) fluctuations:
+\begin{align*}
+n_{eff} (\textbf{R}) &=  n_X(\textbf{R})+n_Y(\textbf{R})
+\end{align*}
+$X$ from large scale effects; $Y$ from small scale effects.
+\begin{align*}
+U(\textbf{r}, L) &= U_0(\textbf{r}, L)\cdot e^{\psi_X(\textbf{r}, L)}\cdot e^{\psi_Y(\textbf{r}, L)}
+\end{align*}
+$\psi_X$,$\psi_Y$ complex phase perturbations on the propagating wave.\\
+\\
+
+\begin{minipage}[b]{0.5\textwidth}
+\begin{itemize}
+\item $l_o$ inner scale of turbulence;
+\item $L_o$ outer scale of turbulence;
+\item $\sqrt{L/k}$ first Fresnel zone;
+\item $\rho_0$ spatial coherence radius of the optical wave;
+\item $L/k\rho_0$ scattering disk;
+\end{itemize}
+\end{minipage}
+\begin{minipage}[c]{0.5\textwidth}
+Def. scattering disk: refractive cell size $l$ at which the focusing angle $\theta_F\sim l/L$ is equal to the average scattering angle $\theta_D$.\\
+
+Three regions defined:
+\begin{itemize}
+\item $l_1\sim\rho_0$; Coherence radius 
+\item $l_2\sim\sqrt{L/k}$; Fresnel zone
+\item $l_3\sim L/k\rho_0$; Scattering disk
+\end{itemize}
+\end{minipage}
+\\
+
+\fbox
+{
+\begin{minipage}{0.5\textwidth}
+\textbf{Weak fluctuations regime}\\
+Fresnel zone $<$ Transverse spatial coherence radius\\
+\begin{align*}
+\sqrt{L/k} &< \rho_0\\
+\theta_D \sim \frac{\lambda}{\sqrt{L/k}}&\sim 1/\sqrt{L/k}
+\end{align*}
+scattering disk ~ on the order of 1st Fresnel zone $l_2$
+\end{minipage}
+}
+\fbox
+{
+\begin{minipage}{0.5\textwidth}
+\textbf{Strong fluctuations regime}\\
+\begin{align*}
+\sqrt{L/k} &> \rho_0\\
+\theta_D \sim \frac{\lambda}{\rho_0}&\sim 1/k\rho_0
+\end{align*}
+scattering disk $\sim l_3$ when $\sqrt{L/k}\equiv \rho_0$\\
+then $l_1\sim l_2\sim l_3$
+\end{minipage}
+}
+\subsection{Scintillation index model}
+(...) One random process modulating another: (...) the atmosphere is the modulation process of the instantaneous light that passes through it:
+\begin{align*}
+\hat{I} &= \frac{I}{\langle I \rangle} = XY
+\end{align*}
+\begin{itemize}
+\item $X$ from large scale effects;
+\item $Y$ from small scale effects;
+\end{itemize}
+\textbf{Second moment}
+\begin{align*}
+\langle \hat{I}^2 \rangle &= \langle X^2 \rangle\langle Y^2 \rangle\\
+	&= (1+\sigma_X^2)(1+\sigma_Y^2)
+\end{align*}
+assuming $\langle X \rangle=\langle Y \rangle=1$ and $\sigma_x^2$, $\sigma_Y^2$ normalized variances
+\begin{align*}
+\sigma_I^2 &= (1+\sigma_X^2)(1+\sigma_Y^2)-1\\
+&= \sigma_X^2+\sigma_Y^2+\sigma_X^2\sigma_Y^2
+\end{align*}
+using Rytov log amplitude of an optical wave (variance of log irradiance), and $\sigma^2_X=e^{\sigma_{\ln X}}-1$ idem Y, results:
+\begin{align*}
+\sigma_I^2 &= \exp(\sigma^2_{\ln X}+\sigma^2_{\ln Y})-1
+\end{align*}
+then in weak irradiance fluctuations results:
+\begin{align*}
+\sigma_X^2 &\cong \sigma^2_{\ln X}\\
+\sigma_Y^2 &\cong \sigma^2_{\ln Y}\\
+\sigma_I^2 &= \sigma^2_{\ln I} = \sigma^2_{\ln X}+\sigma^2_{\ln Y}
+\end{align*}
+
+\textbf{Loss}
+\begin{align*}
+L_{SI} &= 4.343\{\ \textrm{erf}^{-1} (2\rho_{th}-1)\left[ 2\ln(\sigma_I^2+1)\right]^{\frac{1}{2}} - \frac{1}{2}\ln (\sigma_I^2 + 1) \}
+\end{align*}
+
+
+\subsection{Refractive index structure parameter}
+
+\subsection{HV: Hufnagel-Valley}
+%\begin{align*}
+%C_n^2(h) &= 0.00594(w/27)^2*(10^{-5}h)^{10}\exp(-h/1000) + 2.7\times 10^{-16}\exp(-h/1500)+A\exp(-h/100)
+%\end{align*}
+%
+%\begin{align*}
+%C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}e^{\left(\frac{-h}{1000})\right)} 
+%+ 2.7\times 10^{-16}e^{\left(\frac{-h}{1500}\right)}
+%+ Ae^{\left(\frac{-h}{100}\right)}
+%\end{align*}
+
+\begin{align*}
+C_n^2(h) &= 0.00594\left(\frac{w}{27}\right)^2(10^{-5}h)^{10}\exp\left(-\frac{h}{1000}\right) 
++ 2.7\times 10^{-16}\exp\left(-\frac{h}{1500}\right)
++ A\exp\left(-\frac{h}{100}\right)
+\end{align*}
+
+with $A=1.17\times 10^{-14}\textrm{m}^{-2/3}$ and $w=21\ \textrm{m/s}$ recommended by ITU for night observations.
+
+\subsection{Rytov variance}
+Also called variance of log irradiance, denotes the strength of scintillation:
+\begin{align*}
+\sigma_R^2 &= 1.23C_n^2 k^{7/6}L^{11/6}
+\end{align*}
+where different turbulence loads are considered as follows:
+\begin{itemize}
+\item $\sigma^2_R \leq 0.5$ Weak turbulence;
+\item $0.5 < \sigma^2_R \leq 5$ Medium to strong;
+\item $5 < \sigma^2_R \leq 25$ Strong to saturation regime.
+\end{itemize}
+\subsection{Fried parameter (Coherence width)}
+For $C_n^2$ constant, horizontal propagation with uniform turbulence:
+\begin{align*}
+r_0 &= (0.16\cdot C_n^2 k^2 L)^{-3/5}
+\end{align*}
+\\
+For Horizontal link (plane wave):
+\begin{align*}
+r_0 &= \left(1.46C_n^2k^2L\right)^{-3/5}
+\end{align*}
+\\
+For Vertical link or slant paths:\\
+\begin{align*}
+r_0 &= \left[0.42\sec(\zeta)k^2\int_{h_0}^H C_n^2(h)dh\right]^{-3/5}
+\end{align*}
+
+with $\zeta$ the zenith angle ($\sec(0)=1$), $h_0$ the height above ground level of the uplink transitter and/or downlink receiver, $H=h_0+L\cos(\zeta)$ is the satellite altitude. \\
+\\
+Downlink can be approximated by a plane wave. Use vertical link formula.\\
+Uplink can be approximated by a spherical wave. Use next formula:\\
+
+\begin{align*}
+r_0 &= \left[0.42\sec(\zeta)k^2\int_{h_0}^H C_n^2(h)\left(1-\frac{h-h_{OGS}}{H-h_{OGS}}\right)
+dh\right]^{-3/5}
+\end{align*}
+with H the satellite altitude, $h_{OGS}$ the altitude of the OGS receiver, and h the integrand.
+
+
+\subsection{Greenwood frequency}
+\begin{align*}
+f_g &= 2.31\lambda^{-6/5}\left[\sec(\theta)\int_{h_0}^H C_n^2(h)V_{\textrm{wind}}^{5/3}(h)dh\right]^{3/5}
+\end{align*}
+
+
+
+\section{Link Distance}
+With $R_E$ the Earth radius, $H_{OGS}$ the ground station height, $H$ or $H_{sat}$ the satellite altitude, and the angles referred to the corresponding figure:
+\begin{align*}
+L &= -(R_E + H_{OGS})\sin\zeta+\sqrt{(R_E + H)^2 - (R_E + H_{OGS})^2\cos^2\zeta}
+\end{align*}
+
+\begin{figure}
+\includegraphics[scale=0.4]{pics/SlantRange.png}
+\end{figure}
+
+\begin{align*}
+L &= \sqrt{ (R_E+H_{OGS})^2 + (R_E + H_{sat})^2 - 2(R_E + H_{OGS})(R_E + H_{sat})\cos \gamma}
+\end{align*}
+with $\gamma=\pi/2-\alpha(\epsilon)-\epsilon$, and $\alpha(\epsilon) = \sin^{-1}\left[\frac{R_e+H_{OGS}}{R_E+H_{Sat}} \cos\epsilon \right]$
+\begin{align*}
+d_{max} = -R_E\sin \alpha+\sqrt{(R_E\sin\alpha)^2+H^2+2R_E H}
+\end{align*}
+
+\subsection{Beam spreading (Spot size)}
+Long-term spot size $W_{\textrm{LT}}$ assumed to have long-term Gaussian intensity profile:
+\begin{align*}
+W_{\textrm{LT}}^2 &= W^2 + W^2 T_{SS}+\left\langle r_c^2\right\rangle = W_{\textrm{ST}}^2 + \left\langle r_c^2\right\rangle 
+\end{align*}
+with $r_c$ the centroid movement, amd $\sqrt{\left\langle r_c^2\right\rangle}$ its standard deviation, or beam wander displacement variance.\\
+\\
+Loss (Uplink)jki09:\\
+\begin{align*}
+L_{SR} = \left[1+\left(\frac{D_T}{r_0}\right)^{\frac{5}{3}}\right]^{-\frac{6}{5}}
+\end{align*}
+ 
+\subsection{Beam wander}
+Beam wander variance:
+\begin{align*}
+\left\langle r_c^2\right \rangle &= 0.54\left(H-h_{OGS}\right)^2\sec^2(\zeta)\left(\frac{\lambda}{2W_0}\right)^2\left(\frac{2W_0}{r_0}\right)^{5/3}
+\end{align*}
+assuming an infinite outer scale of turbulence for a collimated Gaussian beam.\\
+\begin{align*}
+\left\langle r_c^2\right\rangle &= 7.25L^2 W_0^{-1/3}\csc(\epsilon)\int^H_{h_0} C^2_n(h)\left(1-\frac{h-h_0}{L\sin\epsilon}\right)^2  dh
+\end{align*}
+RMS beam wander displacement:
+\begin{align*}
+\sqrt{\left\langle r_c^2\right\rangle} &= 0.69\left(\frac{\lambda}{2W_0}\right)\left(\frac{2W_0}{r_0}\right)^{5/6}
+\end{align*}
+with $r_0$ the Fried's parameter.\\
+
+\section{Pointing Error}
+\subsection{Two-line element error}
+\subsection{Star tracker error}
+\subsection{Encoders reading error}
+\subsection{Jitter}
+\subsection{Atmospheric effects}
+
+\section{Data Communication}
+\subsection{Baud Rate}
+\subsection{Bandwidth}
+\subsection{Modulation}
+\subsection{Spectral Efficiency}
+\subsection{Capacity}
+\begin{equation*}
+C = B\cdot \textrm{log}_2\left(1+\frac{S}{N}\right) \\
+\end{equation*}
+\subsection{Signal-to-Noise Ratio}
+\begin{align*}
+\textrm{SNR}_0 &= \frac{i_s}{\sigma_N} = \sqrt{\frac{\eta P_S}{2h\nu B}} \ \ \rightarrow \ \ 10\cdot \log(\textrm{SNR}_0) = 74.9 \textrm{ dB}
+\\
+\\
+\end{align*}
+
+
+\begin{align*}
+i_S &= \frac{\eta e P_s}{h\nu} = \frac{0.85\cdot e \cdot 10 \textrm{ mW}}{h\cdot 193.4 \textrm{ THz}} = 0.01063\\
+\\
+\\
+\left\langle i_N^2 \right\rangle &= 2eBi_S = 2\cdot e \cdot 100\cdot 10^{9}\cdot 0.01063 = 3.406\cdot 10^{-10}
+\\
+\\
+\end{align*}
+
+
+\subsection{Bit Error Rate}
+\begin{align*}
+\textrm{4-QAM:   } BER &\approx \cdot Q\left(\sqrt{\frac{2E_b}{N_0}}\right)\\
+\textrm{16-QAM:   }BER &\approx 3\cdot Q\left(\sqrt{\frac{4E_b}{5N_0}}\right)
+\end{align*}
+
+\subsection{Mean SNR}
+\begin{align*}
+\left\langle\textrm{SNR}\right\rangle &= \frac{\textrm{SNR}_0}{\sqrt{\left(\frac{P_{S0}}{\left\langle P_S\right\rangle}\right)+\sigma_I^2(D_G)\textrm{SNR}_0^2}}
+\\
+\\
+\left\langle\textrm{SNR}\right\rangle &\cong \frac{1}{\sigma_1(D_G)}, \ \ \ \textrm{SNR}_0 \rightarrow \infty
+\\
+\\
+\left\langle\textrm{SNR}\right\rangle &= \frac{\left\langle i_S \right\rangle}{\sigma_N}
+\end{align*}
+
+\subsection{Fading statistics}
+\begin{align*}
+Pr_{\textrm{fade}} &= 1 -\frac{1}{2}\int_0^\infty (u)\textrm{erfc}\left(\frac{\textrm{TNR}-\left\langle \textrm{SNR}\right\rangle u}{\sqrt{2}}\right)du
+\\
+\\
+Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(u)\textrm{erfc}\left(\frac{\left\langle \textrm{SNR}\right\rangle u}{2\sqrt{2}}\right)du
+\end{align*}
+
+\section{Modulation}
+\subsubsection{OOK: On-Off Keying}
+\subsubsection{QPSK: Quadrature Phase Keying}
+\subsubsection{QAM: Quadrature Amplitude Modulation}
+\subsection{Data Rates}
+
+\section{Photodetectors}
+\subsection{Noise}
+\subsection{APD}
+\subsection{PIN}
+\subsubsection{InGaAS}
+
+Example: InGaAs PIN photodiode G6854-01
+
+\begin{itemize}
+\item Sensitivity $\rm S = 0.95 \ \rm A/\rm W$
+\item Noise Equivalent Power: $\rm{NEP} = 2\times 10^{-15} \rm \ W/\sqrt{\rm{Hz}}$
+\end{itemize}
+
+\subsection{QPD}
+
+\section{Laser transmitter}
+\subsection{Amplitude modulation}
+\subsection{Phase modulation}
+\subsection{Polarization modulation}
+
+
+\section{References}
+\ref{NSNAM}
+https://www.nsnam.org/reviews/2016/socis-midterm/fso.html
+\end{document}
+

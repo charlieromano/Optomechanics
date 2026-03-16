@@ -1,0 +1,58 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Laser beam propagation}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Divergence}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Spot size}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Field of View (FOV)}{3}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Gaussian beam}{3}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Gaussian beam parameters}{4}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Gaussian Beam width}{4}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}Beam width at FWHM and $1/e^2$}{4}{subsubsection.1.4.3}%
+\contentsline {subsubsection}{\numberline {1.4.4}Divergence at FWHM and $1/e^2$}{4}{subsubsection.1.4.4}%
+\contentsline {subsubsection}{\numberline {1.4.5}Irradiance on-axis}{4}{subsubsection.1.4.5}%
+\contentsline {section}{\numberline {2}Link budget}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Power at the receiver}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Irradiance at the receiver}{4}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Atmospheric channel effects}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Kolmogorov outer scale and inner scale}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Extended Rytov theory}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Scintillation index model}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Refractive index structure parameter}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}HV: Hufnagel-Valley}{7}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Rytov variance}{7}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Fried parameter (Coherence width)}{7}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Greenwood frequency}{7}{subsection.3.8}%
+\contentsline {section}{\numberline {4}Link Distance}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Beam spreading (Spot size)}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Beam wander}{8}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Pointing Error}{9}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Two-line element error}{9}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Star tracker error}{9}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Encoders reading error}{9}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Jitter}{9}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Atmospheric effects}{9}{subsection.5.5}%
+\contentsline {section}{\numberline {6}Data Communication}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Baud Rate}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Bandwidth}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Modulation}{9}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Spectral Efficiency}{9}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Capacity}{9}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Signal-to-Noise Ratio}{9}{subsection.6.6}%
+\contentsline {subsection}{\numberline {6.7}Bit Error Rate}{10}{subsection.6.7}%
+\contentsline {subsection}{\numberline {6.8}Mean SNR}{10}{subsection.6.8}%
+\contentsline {subsection}{\numberline {6.9}Fading statistics}{10}{subsection.6.9}%
+\contentsline {section}{\numberline {7}Modulation}{10}{section.7}%
+\contentsline {subsubsection}{\numberline {7.0.1}OOK: On-Off Keying}{10}{subsubsection.7.0.1}%
+\contentsline {subsubsection}{\numberline {7.0.2}QPSK: Quadrature Phase Keying}{10}{subsubsection.7.0.2}%
+\contentsline {subsubsection}{\numberline {7.0.3}QAM: Quadrature Amplitude Modulation}{10}{subsubsection.7.0.3}%
+\contentsline {subsection}{\numberline {7.1}Data Rates}{10}{subsection.7.1}%
+\contentsline {section}{\numberline {8}Photodetectors}{10}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Noise}{10}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}APD}{10}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}PIN}{10}{subsection.8.3}%
+\contentsline {subsubsection}{\numberline {8.3.1}InGaAS}{10}{subsubsection.8.3.1}%
+\contentsline {subsection}{\numberline {8.4}QPD}{11}{subsection.8.4}%
+\contentsline {section}{\numberline {9}Laser transmitter}{11}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Amplitude modulation}{11}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Phase modulation}{11}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Polarization modulation}{11}{subsection.9.3}%
+\contentsline {section}{\numberline {10}References}{11}{section.10}%
