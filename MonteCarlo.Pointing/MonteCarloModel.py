@@ -112,6 +112,7 @@ class AcquisitionModel:
         velocity = self._get(p, "velocity")
         dwell_time = self._get(p, "dwell_time")
         power = self._get(p, "power")
+        simulation_resolution = self._get(p, "simulation_resolution")
 
         theta_fou = N_sigma * sigma_theta
         spot_radius = theta_div / 2.0
