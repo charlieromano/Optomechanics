@@ -22,7 +22,7 @@ class Unit:
 # Auxiliary class for derived physics
 class AcquisitionDerived:
     def __init__(self, spot_radius, theta_fou, spiral_a, theta_max, num_turns,
-                 step_length, dt, energy_per_dwell, irradiance):
+                 step_length, dt, simulation_resolution, dwell_time, energy_per_dwell, irradiance):
         self.spot_radius = spot_radius
         self.theta_fou = theta_fou
         self.spiral_a = spiral_a
@@ -30,6 +30,8 @@ class AcquisitionDerived:
         self.num_turns = num_turns
         self.step_length = step_length
         self.dt = dt
+        self.simulation_resolution = simulation_resolution
+        self.dwell_time = dwell_time
         self.energy_per_dwell = energy_per_dwell
         self.irradiance = irradiance
 
@@ -130,7 +132,9 @@ class AcquisitionModel:
             theta_max=theta_max,
             num_turns=num_turns,
             step_length=step_length,
-            dt=dwell_time,
+            dt = simulation_resolution,
+            simulation_resolution=simulation_resolution,
+            dwell_time = dwell_time,   # requirement threshold
             energy_per_dwell=energy_per_dwell,
             irradiance=irradiance
         )
@@ -178,6 +182,7 @@ class AcquisitionModel:
         if max_points and len(pts) > max_points:
             pts = pts[:: len(pts) // max_points]
         return pts
+
     @staticmethod
     @njit
     def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
@@ -200,25 +205,79 @@ class AcquisitionModel:
                 energy += energy_per_dwell
             time += dt
         return hit, t_hit, time, dwell, energy, hit_index
-
+    
+    # def _simulate_python(self, traj, target, d):
+    #     time = 0.0
+    #     dwell_time = 0.0
+    #     energy = 0.0
+    #     hit = False
+    #     t_hit = np.nan
+    #     first_hit_pos = None
+    #     r2 = d.spot_radius**2
+    #     for x, y in traj:
+    #         dx, dy = x - target[0], y - target[1]
+    #         if dx*dx + dy*dy <= r2:
+    #             if not hit:
+    #                 hit = True
+    #                 t_hit = time
+    #                 first_hit_pos = np.array([x, y])
+    #             dwell_time += d.dt
+    #             energy += d.energy_per_dwell
+    #         time += d.dt
+    #     return hit, t_hit, time, dwell_time, energy, first_hit_pos
     def _simulate_python(self, traj, target, d):
+        # --------------------------------------------------
+        # Segment-circle intersection (returns time in circle)
+        # --------------------------------------------------
+        def segment_circle_time(p1, p2, center, r, dt):
+            x1, y1 = p1[0] - center[0], p1[1] - center[1]
+            x2, y2 = p2[0] - center[0], p2[1] - center[1]
+            dx = x2 - x1
+            dy = y2 - y1
+            a = dx*dx + dy*dy
+            if a == 0:
+                return 0.0
+            b = 2.0 * (x1*dx + y1*dy)
+            c = x1*x1 + y1*y1 - r*r
+            disc = b*b - 4*a*c
+            if disc <= 0:
+                return 0.0
+            sqrt_d = np.sqrt(disc)
+            t1 = (-b - sqrt_d) / (2*a)
+            t2 = (-b + sqrt_d) / (2*a)
+            t_in = max(0.0, min(t1, t2))
+            t_out = min(1.0, max(t1, t2))
+            if t_out <= 0 or t_in >= 1:
+                return 0.0
+            return (t_out - t_in) * dt
+
         time = 0.0
         dwell_time = 0.0
         energy = 0.0
         hit = False
         t_hit = np.nan
         first_hit_pos = None
-        r2 = d.spot_radius**2
-        for x, y in traj:
-            dx, dy = x - target[0], y - target[1]
-            if dx*dx + dy*dy <= r2:
-                if not hit:
+        r = d.spot_radius
+        dt = d.dt
+        threshold = d.dwell_time
+
+        for i in range(len(traj) - 1):
+            p1 = traj[i]
+            p2 = traj[i + 1]
+            dt_overlap = segment_circle_time(p1, p2, target, r, dt)
+            if dt_overlap > 0.0:
+                # accumulate physical interaction time
+                dwell_time += dt_overlap
+                # energy = irradiance × time overlap
+                energy += d.irradiance * dt_overlap
+                # first hit detection
+                if first_hit_pos is None:
+                    first_hit_pos = p1.copy()
+                # hit condition (continuous)
+                if (not hit) and (dwell_time >= threshold):
                     hit = True
                     t_hit = time
-                    first_hit_pos = np.array([x, y])
-                dwell_time += d.dt
-                energy += d.energy_per_dwell
-            time += d.dt
+            time += dt
         return hit, t_hit, time, dwell_time, energy, first_hit_pos
 
     def _simulate_streaming(self, target, d):
