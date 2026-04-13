@@ -417,13 +417,20 @@ Pr(E) &= \left\langle \textrm{BER} \right\rangle = \frac{1}{2}\int_0^\infty p_f(
 \subsection{APD}
 \subsection{PIN}
 \subsubsection{InGaAS}
+\pagebreak
+\subsubsection{Camera}
 
 Example: InGaAs PIN photodiode G6854-01
 
 \begin{itemize}
 \item Sensitivity $\rm S = 0.95 \ \rm A/\rm W$
 \item Noise Equivalent Power: $\rm{NEP} = 2\times 10^{-15} \rm \ W/\sqrt{\rm{Hz}}$
+\item $N_{photons} = \frac{\rm{Dark noise}}{Q.E.}$
+\item $E_{min} = N_{photons} \cdot E_p$
+\item Energy per photon $E_p=\frac{hc}{\nu}$ = $1.28\times 10^{-19}$ Joules at $\lambda=1550$ nm.
+\item $E_{min} = \left(\frac{N_{sat}}{10^\frac{\rm{Dyn. range}}{20}}\cdot \frac{1}{Q.E.}\cdot\frac{hc}{\nu} \right)$ [Joules]
 \end{itemize}
+
 
 \subsection{QPD}
 
