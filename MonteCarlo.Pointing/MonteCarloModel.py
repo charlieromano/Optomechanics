@@ -183,26 +183,50 @@ class AcquisitionModel:
             pts = pts[:: len(pts) // max_points]
         return pts
 
+    # @staticmethod
+    # @njit
+    # def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
+    #     time = 0.0
+    #     dwell = 0.0
+    #     energy = 0.0
+    #     hit = False
+    #     t_hit = np.nan
+    #     hit_index = -1
+    #     r2 = spot_radius**2
+    #     for idx in range(traj.shape[0]):
+    #         dx = traj[idx,0] - target[0]
+    #         dy = traj[idx,1] - target[1]
+    #         if dx*dx + dy*dy <= r2:
+    #             if not hit:
+    #                 hit = True
+    #                 t_hit = time
+    #                 hit_index = idx
+    #             dwell += dt
+    #             energy += energy_per_dwell
+    #         time += dt
+    #     return hit, t_hit, time, dwell, energy, hit_index
     @staticmethod
     @njit
-    def _simulate_numba_kernel(traj, target, dt, spot_radius, energy_per_dwell):
+    def _simulate_numba_kernel(traj, target, dt, spot_radius, irradiance, dwell_threshold):
         time = 0.0
         dwell = 0.0
         energy = 0.0
         hit = False
         t_hit = np.nan
         hit_index = -1
-        r2 = spot_radius**2
+        r2 = spot_radius * spot_radius
         for idx in range(traj.shape[0]):
-            dx = traj[idx,0] - target[0]
-            dy = traj[idx,1] - target[1]
-            if dx*dx + dy*dy <= r2:
-                if not hit:
+            dx = traj[idx, 0] - target[0]
+            dy = traj[idx, 1] - target[1]
+            inside = dx*dx + dy*dy <= r2
+            if inside:
+                dwell += dt
+                energy += irradiance * dt
+                if hit_index == -1:
+                    hit_index = idx
+                if (not hit) and (dwell >= dwell_threshold):
                     hit = True
                     t_hit = time
-                    hit_index = idx
-                dwell += dt
-                energy += energy_per_dwell
             time += dt
         return hit, t_hit, time, dwell, energy, hit_index
     
@@ -226,9 +250,6 @@ class AcquisitionModel:
     #         time += d.dt
     #     return hit, t_hit, time, dwell_time, energy, first_hit_pos
     def _simulate_python(self, traj, target, d):
-        # --------------------------------------------------
-        # Segment-circle intersection (returns time in circle)
-        # --------------------------------------------------
         def segment_circle_time(p1, p2, center, r, dt):
             x1, y1 = p1[0] - center[0], p1[1] - center[1]
             x2, y2 = p2[0] - center[0], p2[1] - center[1]
@@ -250,7 +271,6 @@ class AcquisitionModel:
             if t_out <= 0 or t_in >= 1:
                 return 0.0
             return (t_out - t_in) * dt
-
         time = 0.0
         dwell_time = 0.0
         energy = 0.0
@@ -260,7 +280,6 @@ class AcquisitionModel:
         r = d.spot_radius
         dt = d.dt
         threshold = d.dwell_time
-
         for i in range(len(traj) - 1):
             p1 = traj[i]
             p2 = traj[i + 1]
@@ -280,34 +299,58 @@ class AcquisitionModel:
             time += dt
         return hit, t_hit, time, dwell_time, energy, first_hit_pos
 
+    # def _simulate_streaming(self, target, d):
+    #     """Streaming simulation for HDF5 backend."""
+    #     time = 0.0
+    #     dwell = 0.0
+    #     energy = 0.0
+    #     hit = False
+    #     time_to_hit = np.nan
+    #     first_hit_pos = None
+    #     r2 = d.spot_radius**2
+    #     for x, y in self._spiral_generator(d):
+    #         dx = x - target[0]
+    #         dy = y - target[1]
+    #         if dx*dx + dy*dy <= r2:
+    #             if not hit:
+    #                 hit = True
+    #                 time_to_hit = time
+    #                 first_hit_pos = np.array([x, y])
+    #             dwell += d.dt
+    #             energy += d.energy_per_dwell
+    #         time += d.dt
+    #     return hit, time_to_hit, time, dwell, energy, first_hit_pos
     def _simulate_streaming(self, target, d):
-        """Streaming simulation for HDF5 backend."""
         time = 0.0
         dwell = 0.0
         energy = 0.0
         hit = False
-        time_to_hit = np.nan
+        t_hit = np.nan
         first_hit_pos = None
-        r2 = d.spot_radius**2
-
+        r2 = d.spot_radius * d.spot_radius
+        dt = d.dt
+        threshold = d.dwell_time
+        prev = None
         for x, y in self._spiral_generator(d):
             dx = x - target[0]
             dy = y - target[1]
-            if dx*dx + dy*dy <= r2:
-                if not hit:
-                    hit = True
-                    time_to_hit = time
+            inside = dx*dx + dy*dy <= r2
+            if inside:
+                dwell += dt
+                energy += d.irradiance * dt
+                if first_hit_pos is None:
                     first_hit_pos = np.array([x, y])
-                dwell += d.dt
-                energy += d.energy_per_dwell
-            time += d.dt
-
-        return hit, time_to_hit, time, dwell, energy, first_hit_pos
+                if (not hit) and (dwell >= threshold):
+                    hit = True
+                    t_hit = time
+            prev = (x, y)
+            time += dt
+        return hit, t_hit, time, dwell, energy, first_hit_pos
 
     def _simulate(self, traj, target, d):
         if self.backend == "numba":
             hit, t_hit, t_tot, dwell, energy, hit_idx = AcquisitionModel._simulate_numba_kernel(
-                traj, target, d.dt, d.spot_radius, d.energy_per_dwell
+                traj, target, d.dt, d.spot_radius, d.irradiance, d.dwell_time
             )
             first_hit_pos = traj[hit_idx].copy() if hit_idx >= 0 else None
             return hit, t_hit, t_tot, dwell, energy, first_hit_pos
