@@ -136,6 +136,8 @@ if valid_results and len(valid_results) > 0:
     limit = d.theta_fou * 1.1
     ax_spiral.set_xlim(-limit, limit)
     ax_spiral.set_ylim(-limit, limit)
+    ax_spiral.set_xlabel("rad")
+    ax_spiral.set_ylabel("rad")
     ax_spiral.set_aspect("equal")
     ax_spiral.set_title("Spiral Geometry")
     ax_spiral.legend(fontsize=8, loc='upper right')
@@ -150,6 +152,8 @@ if valid_results:
     # Sync limits with the spiral plot
     ax_spatial.set_xlim(-limit, limit)
     ax_spatial.set_ylim(-limit, limit)
+    ax_spatial.set_xlabel("rad")
+    ax_spatial.set_ylabel("rad")
     ax_spatial.set_aspect("equal")
     ax_spatial.set_title("Monte Carlo Spatial Map")
 # -------------------
