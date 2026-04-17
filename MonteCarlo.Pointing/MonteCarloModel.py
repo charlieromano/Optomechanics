@@ -21,19 +21,9 @@ class Unit:
 
 # Auxiliary class for derived physics
 class AcquisitionDerived:
-    def __init__(self, spot_radius, theta_fou, spiral_a, theta_max, num_turns,
-                 step_length, dt, simulation_resolution, dwell_time, energy_per_dwell, irradiance):
-        self.spot_radius = spot_radius
-        self.theta_fou = theta_fou
-        self.spiral_a = spiral_a
-        self.theta_max = theta_max
-        self.num_turns = num_turns
-        self.step_length = step_length
-        self.dt = dt
-        self.simulation_resolution = simulation_resolution
-        self.dwell_time = dwell_time
-        self.energy_per_dwell = energy_per_dwell
-        self.irradiance = irradiance
+    def __init__(self):
+        # We will assign attributes dynamically in _derive
+        pass
 
 # ExperimentResult stores outputs of a single run
 class ExperimentResult:
@@ -107,80 +97,152 @@ class AcquisitionModel:
     # Derive physics
     # ----------------------------
     def _derive(self, p):
-        sigma_theta = self._get(p, "sigma_theta")
+        d = AcquisitionDerived()
+        
+        # 1. Base Parameter Extraction
         theta_div = self._get(p, "theta_div")
-        N_sigma = self._get(p, "N_sigma")
-        overlap = self._get(p, "overlap_factor")
         velocity = self._get(p, "velocity")
-        dwell_time = self._get(p, "dwell_time")
-        power = self._get(p, "power")
-        simulation_resolution = self._get(p, "simulation_resolution")
+        rx_power = self._get(p, "power")  # P_rx in Watts
+        mode = self._get(p, "scan_mode")
+        sim_res = self._get(p, "simulation_resolution")
+        p_dwell = self._get(p, "dwell_time")
+        
+        # 2. Geometry
+        d.spot_radius = theta_div / 2.0
+        d.theta_fou = self._get(p, "N_sigma") * self._get(p, "sigma_theta")
+        d.spiral_a = (theta_div * (1.0 - self._get(p, "overlap_factor"))) / (2.0 * np.pi)
+        
+        # Add these to avoid AttributeErrors if your generator or analyzer needs them
+        d.theta_max = d.theta_fou / d.spiral_a if d.spiral_a != 0 else 0
+        d.num_turns = d.theta_max / (2.0 * np.pi)
+        
+        # 3. Energy Physics
+        d.rx_power = rx_power
+        d.energy_threshold = self._get(p, "energy_threshold")
+        
+        # Physical Irradiance (W/m^2)
+        receiver_diameter = self._get(p, "receiver_diameter")
+        receiver_area = np.pi * (receiver_diameter / 2.0)**2
+        d.irradiance = rx_power / receiver_area
+        
+        # 4. Mode-Specific Timing Logic
+        d.mode = mode
+        if mode == "continuous":
+            d.dwell_time = theta_div / velocity 
+            d.dt = sim_res
+        else: # stare_step
+            d.dwell_time = p_dwell
+            d.dt = p_dwell
+            
+        # 5. Simulation Helpers
+        d.step_length = velocity * d.dt
+        d.energy_per_dwell = rx_power * d.dwell_time
+        d.velocity = velocity
+        d.simulation_resolution = sim_res
 
-        theta_fou = N_sigma * sigma_theta
-        spot_radius = theta_div / 2.0
-        step_length = velocity * dwell_time
-        energy_per_dwell = power * dwell_time
-        spiral_a = (theta_div * (1.0 - overlap)) / (2.0 * math.pi)
-        theta_max = theta_fou / spiral_a
-        num_turns = theta_max / (2.0 * math.pi)
-        irradiance = power / (math.pi * spot_radius**2)
-
-        return AcquisitionDerived(
-            spot_radius=spot_radius,
-            theta_fou=theta_fou,
-            spiral_a=spiral_a,
-            theta_max=theta_max,
-            num_turns=num_turns,
-            step_length=step_length,
-            dt = simulation_resolution,
-            simulation_resolution=simulation_resolution,
-            dwell_time = dwell_time,   # requirement threshold
-            energy_per_dwell=energy_per_dwell,
-            irradiance=irradiance
-        )
-
+        # JUST RETURN THE OBJECT d
+        return d
     # ----------------------------
     # Validate physics
     # ----------------------------
     def _validate(self, p, d):
         self.errors.clear()
         self.warnings.clear()
+        mode = self._get(p, "scan_mode")
 
-        energy_threshold = self._get(p, "energy_threshold")
+        # 1. Energy and Power Consistency Check
+        energy_threshold = self._get(p, "energy_threshold")      
+        
+        # Validation: Energy requirement based on integrated power over dwell time
         if d.energy_per_dwell < energy_threshold:
-            self.errors.append("Energy per dwell below threshold")
+            self.errors.append(f"Energy link budget fail: {d.energy_per_dwell:.2e}J < {energy_threshold:.2e}J")
+        
+        # Physical Check: Ensure Irradiance * Area matches the Power used for energy calcs
+        expected_power = d.irradiance * (math.pi * (self._get(p, "receiver_diameter") / 2.0)**2)
+        if not math.isclose(expected_power, self._get(p, "power"), rel_tol=1e-5):
+            self.warnings.append("Irradiance and Receiver Power are numerically inconsistent")
 
+        # 2. Sampling Check (Mode dependent)
         theta_div = self._get(p, "theta_div")
         overlap = self._get(p, "overlap_factor")
-        max_step = theta_div * (1.0 - overlap)
-        if d.step_length > max_step:
-            self.warnings.append("Along-path undersampling")
-
+        
+        if mode == "continuous":
+            # Nyquist-like check: must sample at least twice per spot diameter
+            if d.step_length > (theta_div / 2.0):
+                self.errors.append("Velocity too high for simulation resolution (undersampling)")
+        
+        # 3. Geometric Coverage
         radial_spacing = 2.0 * math.pi * d.spiral_a
-        if radial_spacing > max_step:
-            self.warnings.append("Radial undersampling")
+        max_allowed_gap = theta_div * (1.0 - overlap)
+        
+        if radial_spacing > theta_div:
+            self.errors.append("Radial gaps detected: Spiral pitch exceeds beam diameter")
+        elif radial_spacing > max_allowed_gap + 1e-9: # tiny epsilon for float math
+            self.warnings.append("Overlap requirement not met in radial direction")
 
-        N_sigma = self._get(p, "N_sigma")
-        if N_sigma < 3.0:
-            self.warnings.append("Target distribution truncated")
+        # 4. Statistical Coverage
+        if self._get(p, "N_sigma") < 3.0:
+            self.warnings.append("Target distribution truncated (N_sigma < 3)")
 
         return len(self.errors) == 0
-
     # ----------------------------
-    # Geometry
+    # Geometry & Timing
     # ----------------------------
-    def _spiral_generator(self, d):
-        n = int(d.theta_max / d.spiral_a)
-        dtheta = d.theta_max / max(n - 1, 1)
-        for i in range(n):
-            theta = i * dtheta
-            r = d.spiral_a * theta
-            yield r * math.cos(theta), r * math.sin(theta)
+    def compute_continuous_scan_time(self, d):
+        """Calculates total time required to traverse the spiral path at constant velocity."""
+        # L = 0.5 * a * theta_max^2 (Arc length approximation for Archimedean spiral)
+        total_length = 0.5 * d.spiral_a * (d.theta_max**2)
+        return total_length / d.velocity
 
-    def _build_spiral(self, d, max_points=None):
-        pts = np.array(list(self._spiral_generator(d)))
+    def _generator(self, d, mode="continuous"):
+        """
+        Generates (x, y, time) coordinates for the beam center.
+        - Continuous: Constant tangential velocity, sampled at simulation_resolution.
+        - Stare-Step: Discrete jumps with velocity-limited slew time + fixed dwell.
+        """
+        if mode == "continuous":
+            t_tot = self.compute_continuous_scan_time(d)
+            n_steps = int(t_tot / d.simulation_resolution)
+            for i in range(n_steps + 1):
+                t = i * d.simulation_resolution
+                # Solve s = v*t = 0.5 * a * theta^2  => theta = sqrt(2vt/a)
+                theta = math.sqrt((2.0 * d.velocity * t) / d.spiral_a)
+                r = d.spiral_a * theta
+                
+                yield r * math.cos(theta), r * math.sin(theta), t
+        elif mode == "stare_step":
+            current_time = 0.0
+            prev_pos = (0.0, 0.0)
+            # Distance between rings is 2*pi*a. To maintain overlap k in the step direction,
+            # we move by the same distance along the arc.
+            # Step size = theta_div * (1 - overlap)
+            arc_step = 2.0 * math.pi * d.spiral_a 
+            # Using the same arc length relation s = 0.5 * a * theta^2
+            # Total distance L = 0.5 * a * theta_max^2
+            total_dist = 0.5 * d.spiral_a * (d.theta_max**2)
+            num_steps = int(total_dist / arc_step)
+            for i in range(num_steps + 1):
+                # Calculate theta for this discrete step
+                s = i * arc_step
+                theta = math.sqrt((2.0 * s) / d.spiral_a)
+                r = d.spiral_a * theta
+                curr_pos = (r * math.cos(theta), r * math.sin(theta))
+                # Calculate Slew (Jump) Time
+                dist = math.sqrt((curr_pos[0] - prev_pos[0])**2 + (curr_pos[1] - prev_pos[1])**2)
+                jump_time = dist / d.velocity # velocity represents maximum slew speed here
+                # Total time = previous + movement + pause
+                current_time += jump_time + d.dwell_time
+                yield curr_pos[0], curr_pos[1], current_time
+                prev_pos = curr_pos
+
+    def _build_spiral(self, d, mode="continuous", max_points=None):
+        """Helper to collect generator output into a numpy array for visualization or analysis."""
+        # We extract only (x, y) for the trajectory array, but keep t available if needed
+        data = list(self._generator(d, mode=mode))
+        pts = np.array([(p[0], p[1]) for p in data])
         if max_points and len(pts) > max_points:
-            pts = pts[:: len(pts) // max_points]
+            step = len(pts) // max_points
+            pts = pts[::step]
         return pts
 
     # @staticmethod
@@ -205,6 +267,37 @@ class AcquisitionModel:
     #             energy += energy_per_dwell
     #         time += dt
     #     return hit, t_hit, time, dwell, energy, hit_index
+    # @staticmethod
+    # @njit
+    # def _simulate_numba_kernel(traj, target, dt, spot_radius, irradiance, dwell_threshold):
+    #     time = 0.0
+    #     dwell = 0.0
+    #     energy = 0.0
+    #     hit = False
+    #     t_hit = np.nan
+    #     hit_index = -1
+    #     r2 = spot_radius * spot_radius
+    #     for idx in range(traj.shape[0]):
+    #         dx = traj[idx, 0] - target[0]
+    #         dy = traj[idx, 1] - target[1]
+    #         inside = dx*dx + dy*dy <= r2
+    #         # if inside:
+    #         #     dwell += dt
+    #         #     energy += irradiance * dt
+    #         #     if hit_index == -1:
+    #         #         hit_index = idx
+    #         #     if (not hit) and (dwell >= dwell_threshold):
+    #         #         hit = True
+    #         #         t_hit = time
+    #         if inside:
+    #             current_streak += dt
+    #             if current_streak >= dwell_threshold and not hit:
+    #                 hit = True
+    #                 t_hit = time
+    #         else:
+    #             current_streak = 0 # Reset if the beam leaves the target
+    #         time += dt
+    #     return hit, t_hit, time, dwell, energy, hit_index   
     @staticmethod
     @njit
     def _simulate_numba_kernel(traj, target, dt, spot_radius, irradiance, dwell_threshold):
@@ -214,6 +307,7 @@ class AcquisitionModel:
         hit = False
         t_hit = np.nan
         hit_index = -1
+        current_streak = 0.0  # tracks continuous time inside the target
         r2 = spot_radius * spot_radius
         for idx in range(traj.shape[0]):
             dx = traj[idx, 0] - target[0]
@@ -224,12 +318,14 @@ class AcquisitionModel:
                 energy += irradiance * dt
                 if hit_index == -1:
                     hit_index = idx
-                if (not hit) and (dwell >= dwell_threshold):
+                current_streak += dt
+                if (not hit) and (current_streak >= dwell_threshold):
                     hit = True
                     t_hit = time
+            else:
+                current_streak = 0.0
             time += dt
         return hit, t_hit, time, dwell, energy, hit_index
-    
     # def _simulate_python(self, traj, target, d):
     #     time = 0.0
     #     dwell_time = 0.0
@@ -249,56 +345,117 @@ class AcquisitionModel:
     #             energy += d.energy_per_dwell
     #         time += d.dt
     #     return hit, t_hit, time, dwell_time, energy, first_hit_pos
-    def _simulate_python(self, traj, target, d):
-        def segment_circle_time(p1, p2, center, r, dt):
+    # def _simulate_python(self, traj, target, d):
+    #     def segment_circle_time(p1, p2, center, r, dt):
+    #         x1, y1 = p1[0] - center[0], p1[1] - center[1]
+    #         x2, y2 = p2[0] - center[0], p2[1] - center[1]
+    #         dx = x2 - x1
+    #         dy = y2 - y1
+    #         a = dx*dx + dy*dy
+    #         if a == 0:
+    #             return 0.0
+    #         b = 2.0 * (x1*dx + y1*dy)
+    #         c = x1*x1 + y1*y1 - r*r
+    #         disc = b*b - 4*a*c
+    #         if disc <= 0:
+    #             return 0.0
+    #         sqrt_d = np.sqrt(disc)
+    #         t1 = (-b - sqrt_d) / (2*a)
+    #         t2 = (-b + sqrt_d) / (2*a)
+    #         t_in = max(0.0, min(t1, t2))
+    #         t_out = min(1.0, max(t1, t2))
+    #         if t_out <= 0 or t_in >= 1:
+    #             return 0.0
+    #         return (t_out - t_in) * dt
+    #     time = 0.0
+    #     dwell_time = 0.0
+    #     energy = 0.0
+    #     hit = False
+    #     t_hit = np.nan
+    #     first_hit_pos = None
+    #     r = d.spot_radius
+    #     dt = d.dt
+    #     threshold = d.dwell_time
+    #     for i in range(len(traj) - 1):
+    #         p1 = traj[i]
+    #         p2 = traj[i + 1]
+    #         dt_overlap = segment_circle_time(p1, p2, target, r, dt)
+    #         if dt_overlap > 0.0:
+    #             # accumulate physical interaction time
+    #             dwell_time += dt_overlap
+    #             # energy = irradiance × time overlap
+    #             energy += d.irradiance * dt_overlap
+    #             # first hit detection
+    #             if first_hit_pos is None:
+    #                 first_hit_pos = p1.copy()
+    #             # hit condition (continuous)
+    #             if (not hit) and (dwell_time >= threshold):
+    #                 hit = True
+    #                 t_hit = time
+    #         time += dt
+    #     return hit, t_hit, time, dwell_time, energy, first_hit_pos
+    def _simulate_python(self, target, d):
+        def segment_circle_time(p1, p2, center, r):
+            """Calculates how much time during a segment p1->p2 the beam center is inside r."""
+            # Vector from segment start to target
             x1, y1 = p1[0] - center[0], p1[1] - center[1]
             x2, y2 = p2[0] - center[0], p2[1] - center[1]
-            dx = x2 - x1
-            dy = y2 - y1
+            dx, dy = x2 - x1, y2 - y1            
+            # Quadratic coefficients for intersection of line and circle
             a = dx*dx + dy*dy
-            if a == 0:
-                return 0.0
+            if a == 0: return 0.0 # No movement
             b = 2.0 * (x1*dx + y1*dy)
             c = x1*x1 + y1*y1 - r*r
             disc = b*b - 4*a*c
-            if disc <= 0:
-                return 0.0
-            sqrt_d = np.sqrt(disc)
+            if disc <= 0: return 0.0 # No intersection
+            sqrt_d = math.sqrt(disc)
             t1 = (-b - sqrt_d) / (2*a)
             t2 = (-b + sqrt_d) / (2*a)
+            # Entry and exit points relative to the segment [0, 1]
             t_in = max(0.0, min(t1, t2))
             t_out = min(1.0, max(t1, t2))
-            if t_out <= 0 or t_in >= 1:
+            if t_out <= t_in or t_out <= 0 or t_in >= 1:
                 return 0.0
-            return (t_out - t_in) * dt
-        time = 0.0
-        dwell_time = 0.0
-        energy = 0.0
+            # Total segment duration
+            segment_dt = p2[2] - p1[2]
+            return (t_out - t_in) * segment_dt
+
+        accumulated_energy = 0.0
         hit = False
         t_hit = np.nan
         first_hit_pos = None
-        r = d.spot_radius
-        dt = d.dt
-        threshold = d.dwell_time
-        for i in range(len(traj) - 1):
-            p1 = traj[i]
-            p2 = traj[i + 1]
-            dt_overlap = segment_circle_time(p1, p2, target, r, dt)
-            if dt_overlap > 0.0:
-                # accumulate physical interaction time
-                dwell_time += dt_overlap
-                # energy = irradiance × time overlap
-                energy += d.irradiance * dt_overlap
-                # first hit detection
-                if first_hit_pos is None:
-                    first_hit_pos = p1.copy()
-                # hit condition (continuous)
-                if (not hit) and (dwell_time >= threshold):
-                    hit = True
-                    t_hit = time
-            time += dt
-        return hit, t_hit, time, dwell_time, energy, first_hit_pos
 
+        gen = self._generator(d, mode=d.mode)
+        prev = next(gen)
+
+        for curr in gen:
+            # 1. Calculate how much time the beam aperture overlaps the target 
+            # during this specific simulation step
+            dt_overlap = segment_circle_time(prev, curr, target, d.spot_radius)
+            
+            # In _simulate_python
+            dt_overlap = segment_circle_time(prev, curr, target, d.spot_radius)
+            if dt_overlap > 0:
+                accumulated_energy += d.rx_power * dt_overlap # Watts * Seconds = Joules
+                
+                if not hit and accumulated_energy >= d.energy_threshold:
+                    hit = True
+                    t_hit = curr[2]
+                # 2. Record the first time the beam touches the target (for the plot)
+                if first_hit_pos is None:
+                    first_hit_pos = (curr[0], curr[1])
+                
+                # 3. Integrate Energy: Energy = Power [W] * Time [s]
+                accumulated_energy += d.rx_power * dt_overlap
+
+                # 4. Physical Trigger: Does total energy meet the detector threshold?
+                if not hit and accumulated_energy >= d.energy_threshold:
+                    hit = True
+                    t_hit = curr[2] # Current time in simulation
+                    
+            prev = curr
+            
+        return hit, t_hit, prev[2], 0.0, accumulated_energy, first_hit_pos
     # def _simulate_streaming(self, target, d):
     #     """Streaming simulation for HDF5 backend."""
     #     time = 0.0
@@ -347,61 +504,63 @@ class AcquisitionModel:
             time += dt
         return hit, t_hit, time, dwell, energy, first_hit_pos
 
+    # def _simulate(self, traj, target, d):
+    #     if self.backend == "numba":
+    #         hit, t_hit, t_tot, dwell, energy, hit_idx = AcquisitionModel._simulate_numba_kernel(
+    #             traj, target, d.dt, d.spot_radius, d.irradiance, d.dwell_time
+    #         )
+    #         first_hit_pos = traj[hit_idx].copy() if hit_idx >= 0 else None
+    #         return hit, t_hit, t_tot, dwell, energy, first_hit_pos
+    #     elif self.backend == "hdf5":
+    #         # HDF5 streaming generates its own trajectory internally
+    #         return self._simulate_streaming(target, d)
+    #     else:  # python backend
+    #         return self._simulate_python(target, d)
     def _simulate(self, traj, target, d):
-        if self.backend == "numba":
+        # Python backend uses its own internal generator (no traj needed)
+        if self.backend == "python":
+            return self._simulate_python(target, d)
+            
+        # Numba backend requires the pre-built trajectory array
+        elif self.backend == "numba":
             hit, t_hit, t_tot, dwell, energy, hit_idx = AcquisitionModel._simulate_numba_kernel(
                 traj, target, d.dt, d.spot_radius, d.irradiance, d.dwell_time
             )
             first_hit_pos = traj[hit_idx].copy() if hit_idx >= 0 else None
             return hit, t_hit, t_tot, dwell, energy, first_hit_pos
-
+            
+        # HDF5 and others
         elif self.backend == "hdf5":
-            # HDF5 streaming generates its own trajectory internally
             return self._simulate_streaming(target, d)
-
-        else:  # python backend
-            return self._simulate_python(traj, target, d)
-
+            
+        else:
+            return self._simulate_python(target, d)
 
     # ----------------------------
     # Public API
     # ----------------------------
     def run(self, params):
         d = self._derive(params)
-        self._last_d = d  # store for plotting/reference
+        self._last_d = d 
 
         if not self._validate(params, d):
-            return ExperimentResult.invalid(
-                errors=self.errors.copy(),
-                warnings=self.warnings.copy()
-            )
+            return ExperimentResult.invalid(errors=self.errors.copy(), warnings=self.warnings.copy())
 
-        # Build trajectory for Python / Numba backends
+        # Build trajectory ONLY for backends that require a pre-computed array
+        mode = params.get("scan_mode", "continuous")
         traj = None
-        if self.backend != "hdf5":
-            traj = self._build_spiral(d)
-        else:
-            # Ensure reference trajectory exists for HDF5
-            if self._reference_trajectory is None:
-                self._reference_trajectory = np.array(
-                    list(self._spiral_generator(d)), dtype=np.float32
-                )
+        if self.backend == "numba":
+            traj = self._build_spiral(d, mode=mode)
 
-        # Dispatch simulation
+        # Dispatch simulation - notice we only pass traj as a potential argument
         hit, t_hit, t_tot, dwell, energy, first_hit_pos = self._simulate(
             traj, params["target_position"], d
         )
 
         return ExperimentResult(
-            hit=hit,
-            time_to_hit=t_hit,
-            total_time=t_tot,
-            dwell_time=dwell,
-            energy=energy,
-            first_hit_pos=first_hit_pos,
-            trajectory=traj if traj is not None else None,
-            physics=d,
-            target=params["target_position"]
+            hit=hit, time_to_hit=t_hit, total_time=t_tot,
+            dwell_time=dwell, energy=energy, first_hit_pos=first_hit_pos,
+            trajectory=traj, physics=d, target=params["target_position"]
         )
 
 

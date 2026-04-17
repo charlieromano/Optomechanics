@@ -16,19 +16,22 @@ SEC = Unit("s")
 WATT = Unit("W")
 JOULE = Unit("J")
 RAD_PER_SEC = Unit("rad/s")
+METER = Unit("m")
 
 # --------------------------------------------------
 # Monte Carlo Parameters
 # --------------------------------------------------
 mc_params = ParameterSet([
     Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
-    Parameter("theta_div", kind="fixed", value=(1.2e-3, RAD)),
+    Parameter("theta_div", kind="fixed", value=(100e-6, RAD)),
     Parameter("N_sigma", kind="fixed", value=3.0),
     Parameter("overlap_factor", kind="fixed", value=0.01),
-    Parameter("velocity", kind="fixed", value=(0.1, RAD_PER_SEC)),
-    Parameter("dwell_time", kind="fixed", value=(150e-6, SEC)),
-    Parameter("power", kind="fixed", value=(1e-6, WATT)),
-    Parameter("energy_threshold", kind="fixed", value=(100e-15, JOULE)),
+    Parameter("velocity", kind="fixed", value=(0.08, RAD_PER_SEC)),
+    Parameter("dwell_time", kind="fixed", value=(100e-6, SEC)),
+    Parameter("power", kind="fixed", value=(0.5e-6, WATT)),
+    Parameter("receiver_diameter", kind="fixed", value=(0.08, METER)),
+    Parameter("energy_threshold", kind="fixed", value=(24e-12, JOULE)),
+    Parameter("simulation_resolution", kind="fixed", value=(3e-5, SEC)),
     Parameter(
         "target_position",
         kind="distribution",
@@ -36,14 +39,15 @@ mc_params = ParameterSet([
         mean=[0.0, 0.0],
         cov=[[4e-3**2, 0.0], [0.0, 4e-3**2]],
     ),
+    Parameter("scan_mode", kind="fixed", value="continuous")
 ])
 
 
 # --------------------------------------------------
 # ENGINE
 # --------------------------------------------------
-N_MonteCarlo = 1000
-model = AcquisitionModel(backend="numba")
+N_MonteCarlo = 10
+model = AcquisitionModel(backend="python")
 engine = MonteCarloEngine(
     model=model,
     method=DirectMonteCarlo(mc_params),
@@ -63,8 +67,7 @@ print("P(acquisition):", analyzer.probability_of_acquisition())
 # --------------------------------------------------
 valid_results = [
     r for r in results
-    if getattr(r, 'trajectory', None) is not None
-    and getattr(r, 'physics', None) is not None
+    if getattr(r, 'physics', None) is not None
     and getattr(r, 'target', None) is not None
 ]
 
@@ -92,27 +95,45 @@ AcquisitionAnalyzer.add_parameter_text(
 # Spiral plot: path, mean hit, mean target
 # -------------------
 if valid_results:
-    # Use first valid trajectory for plotting
+    # 1. Trajectory Plotting (Handle None from Python backend)
+    # If Python backend was used, we need to regenerate the path for the plot
     traj_plot = valid_results[0].trajectory
     d = valid_results[0].physics
-    max_plot_points = 5000
-    if traj_plot.shape[0] > max_plot_points:
-        step = traj_plot.shape[0] // max_plot_points
-        traj_plot = traj_plot[::step]
-    ax_spiral.plot(traj_plot[:,0], traj_plot[:,1], color='black', linewidth=0.4, label="Spiral path")
+    
+    if traj_plot is None:
+        # Regenerate for visualization if not stored during simulation
+        # Access the value from the ParameterSet object
+        mode_val = mc_params["scan_mode"].value
+        traj_plot = model._build_spiral(d, mode=mode_val)
 
-    # Mean hit position (robust to partial results)
-    hits = np.array([r.first_hit_pos for r in valid_results if getattr(r, 'first_hit_pos', None) is not None])
-    mean_hit = np.mean(hits, axis=0) if hits.size > 0 else None
-    if mean_hit is not None:
+    if traj_plot is not None and len(traj_plot) > 0:
+        max_plot_points = 5000
+        if traj_plot.shape[0] > max_plot_points:
+            step = max(1, traj_plot.shape[0] // max_plot_points)
+            traj_plot = traj_plot[::step]
+        ax_spiral.plot(traj_plot[:,0], traj_plot[:,1], color='black', linewidth=0.4, label="Spiral path")
+
+    # 2. Mean hit position (Filter out None/NaN)
+    hits = np.array([r.first_hit_pos for r in valid_results if r.hit and r.first_hit_pos is not None])
+    if hits.size > 0:
+        mean_hit = np.mean(hits, axis=0)
         ax_spiral.plot(mean_hit[0], mean_hit[1], 'go', markersize=6, label="Mean hit")
 
-    # Mean target spot
-    mean_target = np.mean([r.target for r in valid_results], axis=0)
+    # 3. Mean target spot
+    # Use the first result's target as reference if they are static, or mean if jittered
+    targets = np.array([r.target for r in valid_results])
+    mean_target = np.mean(targets, axis=0)
     circle = Circle(mean_target, d.spot_radius, color='blue', fill=False,
                     linestyle='--', linewidth=1.2, label="Mean target")
     ax_spiral.add_patch(circle)
 
+# Set the window to focus on the Field of Uncertainty (FoU)
+limit = d.theta_fou * 1.1 # 10% margin
+ax_spiral.set_xlim(-limit, limit)
+ax_spiral.set_ylim(-limit, limit)
+# Add labels so you can see the scale
+ax_spiral.set_xlabel("Azimuth (rad)")
+ax_spiral.set_ylabel("Elevation (rad)")
 ax_spiral.set_title("Spiral & Mean Hit", fontsize=12)
 ax_spiral.set_aspect("equal")
 ax_spiral.grid(True)

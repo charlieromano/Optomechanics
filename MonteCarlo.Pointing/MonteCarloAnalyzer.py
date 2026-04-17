@@ -100,8 +100,17 @@ class AcquisitionAnalyzer:
         show_percentiles=None,  # e.g., [0.5, 0.95, 0.99]
         percentile_line_styles=None  # e.g., {0.5: ('green','dashdot')}
     ):
-        times = self.acquisition_times()
-        times = times[~np.isnan(times)]  # remove NaNs
+        # Filter for valid hit times only (ignore NaNs)
+        times = np.array([r.time_to_hit for r in self.results if r.hit])
+
+        if times.size == 0:
+            ax_pdf.text(0.5, 0.5, "No successful acquisitions", ha='center', va='center')
+            ax_cdf.text(0.5, 0.5, "No successful acquisitions", ha='center', va='center')
+            return # Exit early to prevent IndexErrors
+
+        # Now it is safe to calculate mean and quantiles
+        mean_time = np.nanmean(times)
+        t_sorted = np.sort(times)
 
         if ax_pdf is None or ax_cdf is None:
             fig, (ax_pdf, ax_cdf) = plt.subplots(1, 2, figsize=(10, 4))
