@@ -22,16 +22,16 @@ METER = Unit("m")
 # Monte Carlo Parameters
 # --------------------------------------------------
 mc_params = ParameterSet([
-    Parameter("sigma_theta", kind="fixed", value=(4e-3, RAD)),
-    Parameter("theta_div", kind="fixed", value=(100e-6, RAD)),
+    Parameter("sigma_theta", kind="fixed", value=(4.0e-3, RAD)),
+    Parameter("theta_div", kind="fixed", value=(0.1e-3, RAD)),
     Parameter("N_sigma", kind="fixed", value=3.0),
     Parameter("overlap_factor", kind="fixed", value=0.01),
-    Parameter("velocity", kind="fixed", value=(0.08, RAD_PER_SEC)),
+    Parameter("velocity", kind="fixed", value=(0.1, RAD_PER_SEC)),
     Parameter("dwell_time", kind="fixed", value=(100e-6, SEC)),
-    Parameter("power", kind="fixed", value=(0.5e-6, WATT)),
+    Parameter("power", kind="fixed", value=(0.3e-6, WATT)),
     Parameter("receiver_diameter", kind="fixed", value=(0.08, METER)),
-    Parameter("energy_threshold", kind="fixed", value=(24e-12, JOULE)),
-    Parameter("simulation_resolution", kind="fixed", value=(3e-5, SEC)),
+    Parameter("energy_threshold", kind="fixed", value=(30e-12, JOULE)),
+    Parameter("simulation_resolution", kind="fixed", value=(10e-6, SEC)),
     Parameter(
         "target_position",
         kind="distribution",
@@ -39,14 +39,14 @@ mc_params = ParameterSet([
         mean=[0.0, 0.0],
         cov=[[4e-3**2, 0.0], [0.0, 4e-3**2]],
     ),
-    Parameter("scan_mode", kind="fixed", value="continuous")
+    Parameter("scan_mode", kind="fixed", value="stare_step")
 ])
 
 
 # --------------------------------------------------
 # ENGINE
 # --------------------------------------------------
-N_MonteCarlo = 10
+N_MonteCarlo = 100
 model = AcquisitionModel(backend="python")
 engine = MonteCarloEngine(
     model=model,
@@ -92,63 +92,66 @@ AcquisitionAnalyzer.add_parameter_text(
 )
 
 # -------------------
-# Spiral plot: path, mean hit, mean target
+# Spiral plot: path, representative hit, representative target
 # -------------------
-if valid_results:
-    # 1. Trajectory Plotting (Handle None from Python backend)
-    # If Python backend was used, we need to regenerate the path for the plot
-    traj_plot = valid_results[0].trajectory
-    d = valid_results[0].physics
+if valid_results and len(valid_results) > 0:
+    res_ref = valid_results[0]
+    d = res_ref.physics  # This object has all your derived parameters
     
-    if traj_plot is None:
-        # Regenerate for visualization if not stored during simulation
-        # Access the value from the ParameterSet object
-        mode_val = mc_params["scan_mode"].value
-        traj_plot = model._build_spiral(d, mode=mode_val)
+    # 1. FIXED: Get mode directly from the physics object 'd' 
+    # (We assigned it in your _derive function earlier!)
+    mode_val = getattr(d, 'mode', 'continuous') 
+    
+    # Force regeneration of the path for visualization
+    traj_plot = model._build_spiral(d, mode=mode_val)
 
     if traj_plot is not None and len(traj_plot) > 0:
-        max_plot_points = 5000
+        # Visibility: Don't downsample too much
+        max_plot_points = 20000
         if traj_plot.shape[0] > max_plot_points:
-            step = max(1, traj_plot.shape[0] // max_plot_points)
+            step = traj_plot.shape[0] // max_plot_points
             traj_plot = traj_plot[::step]
-        ax_spiral.plot(traj_plot[:,0], traj_plot[:,1], color='black', linewidth=0.4, label="Spiral path")
+            
+        ax_spiral.plot(traj_plot[:,0], traj_plot[:,1], color='black', 
+                       linewidth=0.5, alpha=0.6, label="Spiral path")
 
-    # 2. Mean hit position (Filter out None/NaN)
-    hits = np.array([r.first_hit_pos for r in valid_results if r.hit and r.first_hit_pos is not None])
-    if hits.size > 0:
-        mean_hit = np.mean(hits, axis=0)
-        ax_spiral.plot(mean_hit[0], mean_hit[1], 'go', markersize=6, label="Mean hit")
+    # 2. Representative Hit (Physical Geometry)
+    hit_results = [r for r in valid_results if r.hit]
+    if hit_results:
+        best_r = hit_results[0]
+        # Beam Spot (Illumination Area)
+        beam_circle = Circle(best_r.first_hit_pos, d.spot_radius, color='green', 
+                             fill=True, alpha=0.3, label="Beam at Hit")
+        ax_spiral.add_patch(beam_circle)
+        # Target location
+        ax_spiral.plot(best_r.target[0], best_r.target[1], 'bx', markersize=8, label="Target")
+    else:
+        ax_spiral.text(0, 0, "No hits detected", color='red', ha='center')
 
-    # 3. Mean target spot
-    # Use the first result's target as reference if they are static, or mean if jittered
-    targets = np.array([r.target for r in valid_results])
-    mean_target = np.mean(targets, axis=0)
-    circle = Circle(mean_target, d.spot_radius, color='blue', fill=False,
-                    linestyle='--', linewidth=1.2, label="Mean target")
-    ax_spiral.add_patch(circle)
+    # 3. Reference Search Area (3-sigma)
+    ax_spiral.add_patch(Circle((0, 0), d.theta_fou, color='red', fill=False, 
+                               linestyle='--', linewidth=1.5, label="3σ FoU"))
 
-# Set the window to focus on the Field of Uncertainty (FoU)
-limit = d.theta_fou * 1.1 # 10% margin
-ax_spiral.set_xlim(-limit, limit)
-ax_spiral.set_ylim(-limit, limit)
-# Add labels so you can see the scale
-ax_spiral.set_xlabel("Azimuth (rad)")
-ax_spiral.set_ylabel("Elevation (rad)")
-ax_spiral.set_title("Spiral & Mean Hit", fontsize=12)
-ax_spiral.set_aspect("equal")
-ax_spiral.grid(True)
-ax_spiral.legend(fontsize=10, loc='upper right')
+    # Limits and Formatting
+    limit = d.theta_fou * 1.1
+    ax_spiral.set_xlim(-limit, limit)
+    ax_spiral.set_ylim(-limit, limit)
+    ax_spiral.set_aspect("equal")
+    ax_spiral.set_title("Spiral Geometry")
+    ax_spiral.legend(fontsize=8, loc='upper right')
 
 # -------------------
-# Spatial hit/miss map
+# 2. SPATIAL CLOUD MAP (Restoration)
 # -------------------
-valid_hits = [r for r in valid_results if getattr(r, 'hit', False)]
-if valid_hits:
+if valid_results:
+    # This plots the Green (hits) and Red (misses) points
     analyzer.plot_spatial_map(ax_spatial)
-else:
-    ax_spatial.text(0.5, 0.5, "No hits to display", ha='center', va='center')
-ax_spatial.legend(fontsize=10, loc='upper right')
-
+    
+    # Sync limits with the spiral plot
+    ax_spatial.set_xlim(-limit, limit)
+    ax_spatial.set_ylim(-limit, limit)
+    ax_spatial.set_aspect("equal")
+    ax_spatial.set_title("Monte Carlo Spatial Map")
 # -------------------
 # Bottom row: PDF and CDF
 # -------------------
